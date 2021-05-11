@@ -1,11 +1,12 @@
-from flask import Flask
-app = Flask(__name__)
+from app import app
+import view
+from products.blueprint import products
+from account.blueprint import account
 
-uhhhhhiuhiuhiuhiuh
-@app.route('/')
-def hello_world():
-    return 'Hello World!'
-
+app.register_blueprint(products, url_prefix='/products')
+app.register_blueprint(account, url_prefix='/account')
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
+
+
