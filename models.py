@@ -1,30 +1,6 @@
 from app import db, migrate
 
 
-class ClientModel(db.Model):
-    __tablename__ = 'client'
-
-    id = db.Column(db.BigInteger, primary_key=True)
-    email = db.Column(db.String(), nullable=False)
-    password = db.Column(db.String(), nullable=False)
-    login = db.Column(db.String())
-    name = db.Column(db.String())
-    surname = db.Column(db.String())
-    patronymic = db.Column(db.String())
-    birthday = db.Column(db.Date())
-    delivery_address = db.Column(db.String())
-    last_visit = db.Column(db.DateTime())
-    register_date = db.Column(db.DateTime())
-    active_cart = db.Column(db.String())
-    orders = db.Column(db.String())
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def __repr__(self):
-        return f"<Client {self.email}>"
-
-
 class ProductModel(db.Model):
     __tablename__ = 'product'
 

@@ -1,0 +1,39 @@
+body {
+	background-color: grey;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+}
+
+div#upper-panel {
+	margin-top: 40px;
+}
+
+div.admin-upper-links {
+	background-color: cyan;
+	border: none;
+	border-radius: 15px;
+    text-align: center;
+    height: 100px;
+    margin: 30px;
+}
+
+div.admin-upper-links a{
+	color: white;
+	font-size: 30pt;
+}
+
+div#categories-list {
+    margin-top: 50px;
+}
+
+div.admin-button {
+    width: 120px;
+    height: 30px;
+    background-color: cyan;
+    border-radius: 15px;
+    text: white;
+
+}

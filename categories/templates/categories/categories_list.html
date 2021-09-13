@@ -1,0 +1,28 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}
+Admin Panel
+{% endblock %}
+
+{% block page_title %}
+<h1>Categories</h1>
+<h3>Here you can add or delete special characteristics for each category</h3>
+{% endblock %}
+
+
+{% block upper_panel %}
+    <div class="admin-button">
+        <a aria-current="page" href="{{url_for('categories.add')}}">Add category</a>
+    </div>
+{% endblock %}
+
+
+{% block content %}
+    <div class="list-group" id="categories-list">
+        {% for category in d['categories'] %}
+        <a href="{{url_for('categories.edit', id=category.id)}}" class="list-group-item">
+            {{category.name}}
+        </a>
+        {% endfor %}
+    </div>
+{% endblock %}

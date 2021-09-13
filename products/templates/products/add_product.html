@@ -1,0 +1,29 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}
+Admin Panel
+{% endblock %}
+
+{% block page_title %}
+<h1>Add product</h1>
+{% endblock %}
+
+
+
+{% block content %}
+
+<form action="{{ url_for('products.add') }}" method="POST">
+  <div class="col-md-6">
+  {% for field in form %}
+
+    <div class="form-group">
+      {{ field.label(class='control-label') }}
+      {{ field(class='form-control')}}
+    </div>
+  {% endfor %}
+  <br>
+  <button type="submit" class="btn btn-primary">Add product</button>
+  </div>
+</form>
+
+{% endblock %}

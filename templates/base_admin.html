@@ -18,38 +18,51 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          {% for key, value in navbar_links.items()%}
+          {% for link, label in navbar_links.items()%}
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="{{ url_for(key) }}">{{value}}</a>
+            <a class="nav-link active" aria-current="page" href="{{ url_for(link) }}">{{label}}</a>
           </li>
           {% endfor %}
       </ul>
-      <form class="d-flex">
-        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search product">
-        <button class="btn btn-outline-success" type="submit">Search</button>
-      </form>
     </div>
   </div>
 </nav>
 
 <div class="container">
-    <div class="row">
-
-        {% block content_title %}
+    <h2 id="page-title">
+        {% block page_title %}
 
         {% endblock %}
+    </h2>
+    <div class="row" id="upper-panel">
 
+        {% block upper_panel %}
 
-        {% block content %}
+        {% endblock %}
+    </div>
+
+    <div class="row" id="lower-panel">
+        {% block lower_panel %}
 
         {% endblock %}
     </div>
 </div>
 
+<div class="container">
+    {% block content %}
+
+    {% endblock %}
+
+</div>
+
+
+
 
 {% block footer %}
 
 {% endblock %}
+<link rel="stylesheet"  type="text/css" href="{{url_for('static', filename='admin_style.css')}}">
+<script src="{{url_for('static', filename='form_handler.js')}}"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 </body>
 </html>
