@@ -13,7 +13,7 @@ Admin Panel
 
 <h4>Format characteristics like this: name:type(boolean, integer, string), ...</h4>
 
-<form action="{{ url_for('categories.edit') }}" method="POST">
+<form action="{{ url_for('categories.edit_form_submit') }}" method="POST">
   <div class="col-md-6">
 
     {{form.hidden_tag()}}

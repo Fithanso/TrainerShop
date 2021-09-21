@@ -14,13 +14,15 @@ Admin Panel
 
 <form action="{{ url_for('categories.add') }}" method="POST">
   <div class="col-md-6">
-  {% for field in form %}
-
+    {{form.hidden_tag()}}
     <div class="form-group">
-      {{ field.label(class='control-label') }}
-      {{ field(class='form-control')}}
+      {{ form.name.label(class='control-label') }}
+      {{ form.name(class='form-control')}}
     </div>
-  {% endfor %}
+    <div class="form-group">
+      {{ form.short_name.label(class='control-label') }}
+      {{ form.short_name(class='form-control')}}
+    </div>
   <br>
   <button type="submit" class="btn btn-primary">Add category</button>
   </div>

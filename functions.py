@@ -1,7 +1,4 @@
-import time
-from random import randint
 import hashlib
-from models import *
 from flask import session
 
 

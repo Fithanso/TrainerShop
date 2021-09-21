@@ -11,19 +11,19 @@ Admin Panel
 
 
 {% block content %}
+<div class="col-md-6">
+<form id="add-product-form" action="{{ url_for('products.add_form_submit') }}" method="POST">
 
-<form action="{{ url_for('products.add') }}" method="POST">
-  <div class="col-md-6">
   {% for field in form %}
 
     <div class="form-group">
       {{ field.label(class='control-label') }}
-      {{ field(class='form-control')}}
+      {% set id_string = 'add_product_' ~ field.name%}
+      {{ field(class='form-control', id=id_string)}}
     </div>
   {% endfor %}
   <br>
   <button type="submit" class="btn btn-primary">Add product</button>
-  </div>
 </form>
-
+ </div>
 {% endblock %}
