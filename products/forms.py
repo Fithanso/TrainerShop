@@ -1,12 +1,41 @@
-from wtforms import Form, StringField, IntegerField, SelectField, FieldList
+from app import ALLOWED_EXTENSIONS
+from wtforms import StringField, IntegerField, SelectField, SubmitField, MultipleFileField, HiddenField
+from wtforms.validators import DataRequired, Length
+from flask_wtf import FlaskForm
+from flask_wtf.file import FileRequired, FileAllowed
 
 
-class AddProductForm(Form):
-    name = StringField('Name')
-    description = StringField('Description')
-    price = IntegerField('Price')
-    pieces_left = IntegerField('Pieces left')
-    category = SelectField('Category', coerce=str)
-    box_dimensions = StringField('Box dimensions')
-    weight = IntegerField('Weight')
-    img_paths = StringField('Paths to images')
+class NonValidatingSelectField(SelectField):
+    def pre_validate(self, form):
+        pass
+
+
+class CreateProductForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired()])
+    description = StringField('Description', validators=[DataRequired()])
+    price = IntegerField('Price', validators=[DataRequired()], render_kw={"placeholder": "$"})
+    pieces_left = IntegerField('Pieces left', validators=[DataRequired()])
+    # I used my own class because I get "Not a valid choice" error every time
+    category = NonValidatingSelectField('Category')
+    box_dimensions = StringField('Box dimensions', validators=[DataRequired()], render_kw={"placeholder": "mm."})
+    weight = IntegerField('Weight', validators=[DataRequired(), Length(min=0, max=100)],
+                          render_kw={"placeholder": "grams"})
+    img_names = MultipleFileField('Select images', validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Images only!')])
+    submit = SubmitField('Create')
+
+
+class EditProductForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired()])
+    description = StringField('Description', validators=[DataRequired()])
+    price = IntegerField('Price', validators=[DataRequired()], render_kw={"placeholder": "$"})
+    pieces_left = IntegerField('Pieces left', validators=[DataRequired()])
+    # I used my own class because I get "Not a valid choice" error every time
+    category = NonValidatingSelectField('Category')
+    box_dimensions = StringField('Box dimensions', validators=[DataRequired()], render_kw={"placeholder": "mm."})
+    weight = IntegerField('Weight', validators=[DataRequired(), Length(min=0, max=100)],
+                          render_kw={"placeholder": "grams"})
+    img_names = MultipleFileField('Select images', validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Images only!')])
+    product_id = HiddenField()
+    submit = SubmitField('Save')
+
+

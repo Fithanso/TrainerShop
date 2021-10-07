@@ -32,10 +32,10 @@ def unavailable_for_admin(func):
     return wrapper
 
 
-def unavailable_for_logged_client(func):
+def unavailable_for_logged_customer(func):
     @wraps(func)
     def wrapper(**kwargs):
-        if session.get('client'):
+        if session.get('customer'):
             return redirect(url_for('account.index'))
         # parameters presence needs to be checked, because there might be parameters passed in url,
         # which will go through my decorator
@@ -47,13 +47,11 @@ def unavailable_for_logged_client(func):
     return wrapper
 
 
-'''redirects user to login page if he is not logged in'''
-
-
 def login_required(func):
+    """redirects user to login page if he is not logged in"""
     @wraps(func)
     def wrapper(**kwargs):
-        if not session.get('client') or not session.get('admin'):
+        if not session.get('customer') or not session.get('admin'):
             return func()
         return redirect(url_for('account.login'))
 

@@ -5,14 +5,18 @@ Admin Panel
 {% endblock %}
 
 {% block page_title %}
-<h1>Add category</h1>
+<h1>Create category</h1>
 {% endblock %}
 
 
 
 {% block content %}
-
-<form action="{{ url_for('categories.add') }}" method="POST">
+{% for field, errors in form.errors.items() %}
+  <small class="form-upper-error">
+      {{ ', '.join(errors) }}
+  </small>
+{% endfor %}
+<form action="{{ url_for('categories.create') }}" method="POST">
   <div class="col-md-6">
     {{form.hidden_tag()}}
     <div class="form-group">
@@ -24,7 +28,8 @@ Admin Panel
       {{ form.short_name(class='form-control')}}
     </div>
   <br>
-  <button type="submit" class="btn btn-primary">Add category</button>
+  {{ form.submit(class="btn btn-primary")}}
+
   </div>
 </form>
 

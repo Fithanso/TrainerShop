@@ -1,6 +1,8 @@
-from app import db
-import random
+from app import app, db
 from classes.abstract import Repository
+import json
+import random
+import os
 
 
 class ProductModel(db.Model):
@@ -14,10 +16,12 @@ class ProductModel(db.Model):
     price = db.Column(db.Integer())
     pieces_left = db.Column(db.Integer())
     category = db.Column(db.String())
-    specifications = db.Column(db.JSON())
+    characteristics = db.Column(db.JSON())
     box_dimensions = db.Column(db.String())
     weight = db.Column(db.SmallInteger())
-    img_paths = db.Column(db.Text())
+    img_names = db.Column(db.Text())
+    creation_date = db.Column(db.DateTime())
+    last_edited = db.Column(db.DateTime())
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -52,3 +56,27 @@ class ProductModelRepository(Repository):
         else:
             return unique_id
         return 0
+
+    @staticmethod
+    def prepare_list(entities, chunks, max_chars):
+        """Method takes Product entities and make them ready to be displayed"""
+
+        # split all products into chunks of certain length - n. It is needed to display them in rows of n elements
+        products_list = [entities[i:i + chunks] for i in range(0, len(entities), chunks)]
+
+        # prepare icons for all loaded products (1 per product), crop descriptions to max chars possible
+        for product in entities:
+            filenames = json.loads(product.img_names)
+            description = product.description[0:max_chars]
+
+            if len(product.description) > max_chars:
+                description += '...'
+
+            if len(filenames) != 0:
+                # i add a system separator to make a path absolute,
+                # otherwise it'll search a 'static' folder inside products
+                setattr(product, 'icon_path', os.path.sep + os.path.join(app.config['UPLOAD_FOLDER'], filenames[0]))
+
+            setattr(product, 'description', description)
+
+        return products_list

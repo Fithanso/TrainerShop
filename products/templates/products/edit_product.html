@@ -1,0 +1,74 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}
+Admin Panel
+{% endblock %}
+
+{% block page_title %}
+<h1>Edit product</h1>
+{% endblock %}
+
+{% block upper_panel %}
+    <div id="admin_info">
+        <p>Product ID: {{d['product_id']}}</p>
+        <p>Created at: {{d['creation_date']}}</p>
+        <p>Last edited at: {{d['last_edited']}}</p>
+    </div>
+{% endblock %}
+
+
+
+{% block content %}
+<div class="col-md-6">
+  {% for field, errors in form.errors.items() %}
+    <small class="form-upper-error">
+        {{ ' '.join(errors) }}
+    </small>
+  {% endfor %}
+<form id="product-form" action="{{ url_for('products.validate_edit') }}" method="POST" enctype="multipart/form-data">
+  {{ form.hidden_tag() }}
+  <div class="form-group">
+      {{ form.name.label }}
+      {{ form.name(class="form-control", id="edit_product_name") }}
+  </div>
+  <div class="form-group">
+      {{ form.description.label }}
+      {{ form.description(class="form-control", id="edit_product_description") }}
+  </div>
+  <div class="form-group">
+      {{ form.price.label }}
+      {{ form.price(class="form-control", id="edit_product_price") }}
+  </div>
+  <div class="form-group">
+      {{ form.pieces_left.label }}
+      {{ form.pieces_left(class="form-control", id="edit_product_pieces_left") }}
+  </div>
+  <div class="form-group">
+      {{ form.category.label }}
+      {{ form.category(class="form-control", id="edit_product_category") }}
+  </div>
+  <div class="form-group">
+      {{ form.box_dimensions.label }}
+      {{ form.box_dimensions(class="form-control", id="edit_product_box_dimensions") }}
+  </div>
+  <div class="form-group">
+      {{ form.weight.label }}
+      {{ form.weight(class="form-control", id="edit_product_weight") }}
+  </div>
+  <div class="form-group">
+      {{ form.img_names.label }}
+      {{ form.img_names(class="form-control", id="edit_product_img_names") }}
+  </div>
+
+  <br>
+  {{ form.submit(class="btn btn-primary")}}
+
+</form>
+<br>
+<br>
+ </div>
+{% endblock %}
+
+{% block footer %}
+<a href="{{ url_for('products.delete', product_id=d['product_id']) }}" class="btn btn-danger">Delete product</a>
+{% endblock %}

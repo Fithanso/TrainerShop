@@ -27,7 +27,7 @@ class AdminLoginHandler(AbstractHandler):
 
         if admin and admin.password == data['password']:
             set_session_vars(admin={'admin_id': admin.id})
-            return redirect(url_for('admin_panel.admin'))
+            return redirect(url_for('admin_panel.index'))
         return False
 
 

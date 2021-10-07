@@ -13,21 +13,31 @@ Log in to your account!
 
 
 {% block content %}
+{% for field, errors in form.errors.items() %}
+    <small class="form-upper-error">
+        {{ ' '.join(errors) }}
+    </small>
+{% endfor %}
 <form action="{{ url_for('account.login') }}" method="POST">
   <div class="col-md-6">
-  {% for field in form %}
-    <div class="form-group">
-      {{ field.label(class='control-label') }}
-      {{ field(class='form-control')}}
-    </div>
-  {% endfor %}
-  <br>
-  <button type="submit" class="btn btn-primary">Log in</button>
+      {{ form.csrf_token() }}
+
+      <div class="form-group">
+        {{ form.email.label }}
+        {{ form.email(class="form-control") }}
+      </div>
+      <div class="form-group">
+        {{ form.password.label }}
+        {{ form.password(class="form-control") }}
+      </div>
+      <br>
+      {{ form.submit(class="btn btn-primary")}}
+
   </div>
 </form>
 
-<p>
+<small>
       {{er}}
-</p>
+</small>
 {% endblock %}
 

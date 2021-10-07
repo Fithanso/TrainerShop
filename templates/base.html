@@ -33,23 +33,30 @@
 </nav>
 
 <div class="container">
-    <div class="row">
+    {% block breadcrumbs %}
 
-        {% block content_title %}
+    {% endblock %}
 
-        {% endblock %}
+    {% block upper_content %}
+
+    {% endblock %}
 
 
-        {% block content %}
+    {% block content_title %}
 
-        {% endblock %}
-    </div>
+    {% endblock %}
+
+
+    {% block content %}
+
+    {% endblock %}
 </div>
 
 
 {% block footer %}
 
 {% endblock %}
+<link rel="stylesheet"  type="text/css" href="{{url_for('static', filename='main_style.css')}}">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 </body>
 </html>

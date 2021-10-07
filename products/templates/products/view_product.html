@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{product.name}}
+{% endblock %}
+
+{% block breadcrumbs %}
+<a href="#">{{'Categories >> ' ~ d['category']}}</a>
+{% endblock %}
+
+{% block upper_content %}
+{% if d['admin_info'] %}
+    <div id="admin_info">
+        <p>Product ID: {{d['admin_info']['product_id']}}</p>
+        <p>Created at: {{d['admin_info']['creation_date']}}</p>
+        <p>Last edited at: {{d['admin_info']['last_edited']}}</p>
+    </div>
+    <a href="{{ url_for('products.edit', product_id=product.id) }}"><button class="btn btn-primary">Edit product</button></a>
+
+{% endif %}
+{% endblock %}
+
+
+{% block content_title %}
+<h1 id="product-title">{{product.name}}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="container" id="product-block">
+    <div class="row" id="product-img-block">
+        {% for img_path in d['product_images'] %}
+        <div class="product-view-image">
+            <img src="{{img_path}}">
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="" id="product-piecesleft-block">
+        <p>{{product.pieces_left ~ ' left in stock'}}</p>
+    </div>
+
+    <div class="row" id="product-price-container">
+
+        <div class="col-sm-2" id="product-price-block">
+            <p>{{product.price ~ '$'}}</p>
+        </div>
+
+        <div class="col-sm-2" id="product-addtocart-block">
+            <a href="#"><button class="btn btn-primary">Add to cart</button></a>
+        </div>
+        <div class="col-sm-8"></div>
+    </div>
+
+    <h2 id="desc_title">Description</h2>
+    <span>
+        {{ product.description }}
+    </span>
+
+    <h3 id="charcs_title">Characteristics</h3>
+
+    <div>
+        {% for item in d['characteristics'] %}
+            <p>{{item[0] ~ ' : ' ~ item[1]}}</p>
+
+        {% endfor %}
+    </div>
+
+    <div id="box-info-block">
+        <h4 id="box-info">A box:</h4>
+        <p>{{ 'Dimensions: ' ~ product.box_dimensions ~ ' mm.  Weight: ' ~ product.weight ~ ' gr.'}}</p>
+    </div>
+
+
+</div>
+
+{% endblock %}

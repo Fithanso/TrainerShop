@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Admin Panel
+{% endblock %}
+
+{% block page_title %}
+<h1>Choose category</h1>
+{% endblock %}
+
+
+{% block content %}
+    <br>
+    <div class="list-group" id="categories-list">
+        {% for category in d['categories'] %}
+        <a href="{{url_for('categories.view', name=category.name)}}" class="list-group-item">
+            {{category.name}}
+        </a>
+        {% endfor %}
+    </div>
+{% endblock %}

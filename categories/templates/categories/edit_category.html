@@ -12,7 +12,11 @@ Admin Panel
 {% block content %}
 
 <h4>Format characteristics like this: name:type(boolean, integer, string), ...</h4>
-
+{% for field, errors in form.errors.items() %}
+    <small class="form-upper-error">
+        {{ ' '.join(errors) }}
+    </small>
+{% endfor %}
 <form action="{{ url_for('categories.edit_form_submit') }}" method="POST">
   <div class="col-md-6">
 
@@ -20,11 +24,16 @@ Admin Panel
     <div class="form-group">
       {{ form.characteristics(class='form-control', rows=20)}}
       <br>
-      {{ form.submit}}
+      {{ form.submit(class='btn btn-primary') }}
     </div>
-  <br>
+    <br>
 
   </div>
 </form>
 
+
+{% endblock %}
+
+{% block footer %}
+<a href="{{ url_for('categories.delete', category_id=category_id) }}" class="btn btn-danger">Delete category</a>
 {% endblock %}

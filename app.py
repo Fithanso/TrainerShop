@@ -10,6 +10,8 @@ app.config.from_object(Configuration)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+ALLOWED_EXTENSIONS = ('png', 'jpg', 'jpeg', 'gif')
+
 
 
 

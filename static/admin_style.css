@@ -7,6 +7,10 @@ a {
     color: black;
 }
 
+.form-upper-error {
+    color: #D83434;
+}
+
 div#upper-panel {
 	margin-top: 40px;
 }
@@ -30,7 +34,7 @@ div#categories-list {
 }
 
 div.admin-button {
-    width: 120px;
+    width: 150px;
     height: 30px;
     background-color: cyan;
     border-radius: 15px;
