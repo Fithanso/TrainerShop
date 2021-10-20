@@ -1,0 +1,30 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}
+Admin Panel
+{% endblock %}
+
+{% block page_title %}
+<h1>Global settings</h1>
+<h3>Here you can create or delete global settings for the web-site</h3>
+{% endblock %}
+
+
+{% block upper_panel %}
+    <div class="admin-button">
+        <a aria-current="page" href="{{url_for('global_settings.create')}}">Create setting</a>
+    </div>
+{% endblock %}
+
+
+{% block content %}
+    <br>
+    <p>{{d['message']}}</p>
+    <div class="list-group" id="global-settings-list">
+        {% for setting in d['global_settings'] %}
+        <a href="{{url_for('global_settings.edit', id=setting.id)}}" class="list-group-item">
+            {{setting.name}}
+        </a>
+        {% endfor %}
+    </div>
+{% endblock %}

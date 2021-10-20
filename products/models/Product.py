@@ -1,5 +1,6 @@
-from app import app, db
+from app import db, BIGINT_MAX, BIGINT_LEN
 from classes.abstract import Repository
+from global_settings.models.GlobalSetting import GlobalSettingModelRepository
 import json
 import random
 import os
@@ -39,8 +40,8 @@ class ProductModelRepository(Repository):
     @staticmethod
     def create_id() -> int:
 
-        max_int = 9223372036854775807
-        max_len = 19
+        max_int = BIGINT_MAX
+        max_len = BIGINT_LEN
 
         rand_int = str(random.randrange(1, max_int))
 
@@ -59,10 +60,13 @@ class ProductModelRepository(Repository):
 
     @staticmethod
     def prepare_list(entities, chunks, max_chars):
-        """Method takes Product entities and make them ready to be displayed"""
+        """Method takes Product entities and makes them ready to be displayed. List of entities is splitted \
+        into chunks, additional information about each is loaded"""
 
         # split all products into chunks of certain length - n. It is needed to display them in rows of n elements
         products_list = [entities[i:i + chunks] for i in range(0, len(entities), chunks)]
+
+        upload_path = GlobalSettingModelRepository.get('uploads_path')
 
         # prepare icons for all loaded products (1 per product), crop descriptions to max chars possible
         for product in entities:
@@ -75,7 +79,7 @@ class ProductModelRepository(Repository):
             if len(filenames) != 0:
                 # i add a system separator to make a path absolute,
                 # otherwise it'll search a 'static' folder inside products
-                setattr(product, 'icon_path', os.path.sep + os.path.join(app.config['UPLOAD_FOLDER'], filenames[0]))
+                setattr(product, 'icon_path', os.path.sep + os.path.join(upload_path, filenames[0]))
 
             setattr(product, 'description', description)
 

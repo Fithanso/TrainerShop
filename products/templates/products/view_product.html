@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-<a href="#">{{'Categories >> ' ~ d['category']}}</a>
+<a href="{{ url_for('categories.view', category_name=d['category']) }}">{{'Categories >> ' ~ d['category']}}</a>
 {% endblock %}
 
 {% block upper_content %}
@@ -27,12 +27,27 @@
 
 {% block content %}
 <div class="container" id="product-block">
-    <div class="row" id="product-img-block">
-        {% for img_path in d['product_images'] %}
-        <div class="product-view-image">
-            <img src="{{img_path}}">
-        </div>
+
+    <div id="product-img-block" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        {% for index in range(d['product_images']|length) %}
+            {% if index == 0 %}
+            <div class="carousel-item active">
+            {% else %}
+            <div class="carousel-item">
+            {% endif %}
+              <img class="d-block w-100" src="{{ d['product_images'][index] }}" alt="First slide">
+            </div>
         {% endfor %}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#product-img-block" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#product-img-block" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
     </div>
 
     <div class="" id="product-piecesleft-block">

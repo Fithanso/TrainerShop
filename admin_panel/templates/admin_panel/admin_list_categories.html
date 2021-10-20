@@ -22,7 +22,7 @@ Admin Panel
     <p>{{d['message']}}</p>
     <div class="list-group" id="categories-list">
         {% for category in d['categories'] %}
-        <a href="{{url_for('categories.edit', id=category.id)}}" class="list-group-item">
+        <a href="{{url_for('categories.edit', category_id=category.id)}}" class="list-group-item">
             {{category.name}}
         </a>
         {% endfor %}

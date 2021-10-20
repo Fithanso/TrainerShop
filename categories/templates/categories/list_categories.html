@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Admin Panel
+All categories
 {% endblock %}
 
 {% block page_title %}
@@ -13,7 +13,7 @@ Admin Panel
     <br>
     <div class="list-group" id="categories-list">
         {% for category in d['categories'] %}
-        <a href="{{url_for('categories.view', name=category.name)}}" class="list-group-item">
+        <a href="{{url_for('categories.view', category_name=category.name)}}" class="list-group-item">
             {{category.name}}
         </a>
         {% endfor %}

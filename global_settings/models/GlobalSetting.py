@@ -1,38 +1,35 @@
-from app import db, BIGINT_LEN, BIGINT_MAX
+from app import *
+from classes.abstract import Repository
 import random
 
-from classes.abstract import Repository
 
-
-class CharacteristicModel(db.Model):
-    __tablename__ = 'characteristic'
+class GlobalSettingModel(db.Model):
+    __tablename__ = 'global_setting'
     __table_args__ = {'extend_existing': True}  # added this because sqlalchemy was dropping an error. seems that
     # I shouldn't have created tables through pgAdmin, but using SqlAlchemy
 
     id = db.Column(db.BigInteger, primary_key=True)
     name = db.Column(db.String())
-    category_id = db.Column(db.BigInteger)
-    type = db.Column(db.String())
     value = db.Column(db.String())
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"<Characteristic {self.name}>"
+        return f"<Global setting {self.name}>"
 
 
-class CharacteristicModelRepository(Repository):
+class GlobalSettingModelRepository(Repository):
 
-    model = CharacteristicModel
+    model = GlobalSettingModel
 
     """Method generates unique id according to maximum integer possible and checks for duplicates in the table.
     """
     @staticmethod
     def create_id() -> int:
 
-        max_int = BIGINT_MAX
-        max_len = BIGINT_LEN
+        max_int = INT_MAX
+        max_len = INT_LEN
 
         rand_int = str(random.randrange(1, max_int))
 
@@ -43,9 +40,14 @@ class CharacteristicModelRepository(Repository):
 
         #  if a category with the same id is found, then rerun function
 
-        if CharacteristicModelRepository.model.query.get(unique_id):
-            CharacteristicModelRepository.create_id()
+        if GlobalSettingModelRepository.model.query.get(unique_id):
+            GlobalSettingModelRepository.create_id()
         else:
             return unique_id
         return 0
 
+    @staticmethod
+    def get(name):
+        entity = GlobalSettingModel.query.filter(GlobalSettingModel.name == name).first()
+
+        return entity.value

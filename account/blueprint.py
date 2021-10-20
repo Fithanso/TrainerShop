@@ -15,13 +15,12 @@ account = Blueprint('account', __name__, template_folder='templates')
 @unavailable_for_admin
 @login_required
 def index():
-
-    navbar_links = {'products.index': 'All products', 'account.logout': 'Log out'}
-    return render_template('account/account.html', navbar_links=navbar_links)
+    return render_template('account/account.html')
 
 
-@account.route('/signup', methods=['GET', 'POST'])
+@account.route('/signup/', methods=['GET', 'POST'])
 @unavailable_for_logged_customer
+@unavailable_for_logged_admin
 def signup():
     form = SignupForm()
 
@@ -40,18 +39,18 @@ def signup():
             return {"message": "customer creation failed"}
         return redirect(url_for('account.index'))
 
-    navbar_links = {'account.signup': 'Sign up', 'account.login': 'Log in'}
-    return render_template('account/signup.html', form=form, navbar_links=navbar_links)
+    return render_template('account/signup.html', form=form)
 
 
-@account.route('/login', methods=['GET', 'POST'])
+@account.route('/login/', methods=['GET', 'POST'])
 @unavailable_for_logged_customer
+@unavailable_for_logged_admin
 def login():
+    """Operation of login is implemented using C-o-R pattern. Customers and admins can log in using just one form."""
     form = LoginForm()
-    navbar_links = {'account.signup': 'Sign up', 'account.login': 'Log in'}
 
     if request.method == 'GET':
-        return render_template('account/login.html', form=form, navbar_links=navbar_links)
+        return render_template('account/login.html', form=form)
     elif request.method == 'POST':
         data = request.form
 
@@ -64,11 +63,10 @@ def login():
         if result:
             return result
         else:
-            return render_template('account/login.html', form=form, er='Email or login is invalid',
-                                   navbar_links=navbar_links)
+            return render_template('account/login.html', form=form, er='Email or login is invalid')
 
 
-@account.route('/logout', methods=['GET'])
+@account.route('/logout/', methods=['GET'])
 @login_required
 def logout():
     session.pop('customer', None)

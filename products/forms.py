@@ -18,8 +18,7 @@ class CreateProductForm(FlaskForm):
     # I used my own class because I get "Not a valid choice" error every time
     category = NonValidatingSelectField('Category')
     box_dimensions = StringField('Box dimensions', validators=[DataRequired()], render_kw={"placeholder": "mm."})
-    weight = IntegerField('Weight', validators=[DataRequired(), Length(min=0, max=100)],
-                          render_kw={"placeholder": "grams"})
+    weight = IntegerField('Weight', validators=[DataRequired()], render_kw={"placeholder": "grams"})
     img_names = MultipleFileField('Select images', validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Images only!')])
     submit = SubmitField('Create')
 
@@ -32,8 +31,7 @@ class EditProductForm(FlaskForm):
     # I used my own class because I get "Not a valid choice" error every time
     category = NonValidatingSelectField('Category')
     box_dimensions = StringField('Box dimensions', validators=[DataRequired()], render_kw={"placeholder": "mm."})
-    weight = IntegerField('Weight', validators=[DataRequired(), Length(min=0, max=100)],
-                          render_kw={"placeholder": "grams"})
+    weight = IntegerField('Weight', validators=[DataRequired()], render_kw={"placeholder": "grams"})
     img_names = MultipleFileField('Select images', validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Images only!')])
     product_id = HiddenField()
     submit = SubmitField('Save')

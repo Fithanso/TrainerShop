@@ -40,6 +40,12 @@ p {
     margin-top: 50px;
 }
 
+#product-img-block {
+    width: 400px;
+    height: 300px;
+    margin-bottom: 25px;
+}
+
 #product-price-container {
     margin-top: 50px;
 }
@@ -65,12 +71,13 @@ p {
     margin-top: 50px;
 }
 
-.product-view-image {
+.carousel-item  {
     width: 400px;
     height: 300px;
 }
 
-.product-view-image img {
+
+.carousel-item img {
     width: 100%;
     height: 100%;
 }

@@ -1,4 +1,4 @@
-from app import db
+from app import db, BIGINT_LEN, BIGINT_MAX
 import time
 import random
 from classes.abstract import Repository
@@ -37,8 +37,8 @@ class CustomerModelRepository(Repository):
     @staticmethod
     def create_id() -> int:
 
-        max_int = 9223372036854775807
-        max_len = 19
+        max_int = BIGINT_MAX
+        max_len = BIGINT_LEN
 
         rand_int = str(random.randrange(1, max_int))
 

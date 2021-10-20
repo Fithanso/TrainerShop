@@ -9,5 +9,12 @@ def index():
     name = 'Shop'
     navbar_links = get_navbar()
 
-    return render_template('index.html', navbar_links=navbar_links)
+    return render_template('index.html')
+
+
+@app.context_processor
+def navbar_processor():
+    navbar_links = get_navbar()
+
+    return {'navbar_links': navbar_links}
 

@@ -9,11 +9,11 @@ from functions import *
 class CustomerLoginHandler(AbstractHandler):
     def handle(self, data: Any):
 
-        client = CustomerModel.query.filter(CustomerModel.email == data['email']).first()
+        customer = CustomerModel.query.filter(CustomerModel.email == data['email']).first()
 
-        if client:
-            if password_valid(client.password, data['password']):
-                set_session_vars(client={'client_id': client.id})
+        if customer:
+            if password_valid(customer.password, data['password']):
+                set_session_vars(customer={'customer_id': customer.id})
                 return redirect(url_for('account.index'))
             else:
                 return False

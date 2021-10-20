@@ -1,4 +1,4 @@
-from app import db
+from app import db, INT_LEN, INT_MAX
 import random
 from classes.abstract import Repository
 
@@ -28,8 +28,8 @@ class CategoryModelRepository(Repository):
     @staticmethod
     def create_id() -> int:
 
-        max_int = 2147483647
-        max_len = 10
+        max_int = INT_MAX
+        max_len = INT_LEN
 
         rand_int = str(random.randrange(1, max_int))
 

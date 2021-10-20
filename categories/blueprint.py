@@ -1,15 +1,14 @@
-from app import db
+from app import db, app
 from flask import Blueprint, render_template, request, redirect, url_for
 from functions import get_navbar
 from categories.models.Category import CategoryModel, CategoryModelRepository
 from characteristics.models.Characteristic import CharacteristicModel, CharacteristicModelRepository
 from products.models.Product import ProductModel, ProductModelRepository
+from global_settings.models.GlobalSetting import GlobalSettingModelRepository
 from decorators import admin_only
 from categories.forms import *
 import json
 import os
-from app import app
-
 
 categories = Blueprint('categories', __name__, template_folder='templates')
 
@@ -37,15 +36,17 @@ def assemble_to_list(charcs) -> list:
     return result
 
 
-@categories.route('/<name>/', methods=['GET'])
-def view(name):
-    navbar_links = get_navbar()
+@categories.route('/<category_name>/', methods=['GET'])
+def view(category_name):
+    """ Method displays all products within a given category """
 
-    category = CategoryModel.query.filter(CategoryModel.name == name).first()
+    category = CategoryModel.query.filter(CategoryModel.name == category_name).first()
     entities = ProductModel.query.filter(ProductModel.category == category.short_name).all()
 
-    chunks = 3
-    max_chars = 120
+    chunks = GlobalSettingModelRepository.get('products_in_row')
+    chunks = int(chunks)
+    max_chars = GlobalSettingModelRepository.get('max_chars_on_product_card')
+    max_chars = int(max_chars)
 
     products_list = ProductModelRepository.prepare_list(entities, chunks, max_chars)
 
@@ -54,19 +55,19 @@ def view(name):
     if len(entities) == 0:
         data_dict['message'] = 'No products found'
 
-    return render_template('products/list_products.html', d=data_dict, navbar_links=navbar_links)
+    return render_template('products/list_products.html', d=data_dict)
 
 
 @categories.route('/')
 def list():
 
-    navbar_links = get_navbar()
-    data_dict = {'categories': CategoryModel.query.all()}
+    categories_list = CategoryModel.query.all()
+    data_dict = {'categories': categories_list}
 
-    if len(CategoryModel.query.all()) == 0:
+    if len(categories_list) == 0:
         data_dict['message'] = 'No categories found'
 
-    return render_template('categories/list_categories.html', d=data_dict, navbar_links=navbar_links)
+    return render_template('categories/list_categories.html', d=data_dict)
 
 
 @categories.route('/create/', methods=['GET', 'POST'])
@@ -85,20 +86,16 @@ def create():
         except Exception as e:
             return {"message": str(e)}
 
-        return redirect(url_for('admin_panel.admin'))
+        return redirect(url_for('admin_panel.list_categories'))
 
-    navbar_links = {'account.logout': 'Log out'}
-    return render_template('categories/create_category.html', navbar_links=navbar_links, form=form)
+    return render_template('categories/create_category.html', form=form)
 
 
-@categories.route('/edit/<id>/', methods=['GET'])
+@categories.route('/edit/<category_id>/', methods=['GET'])
 @admin_only
-def edit(id):
+def edit(category_id):
 
     form = EditCategoryForm()
-
-    navbar_links = get_navbar()
-    category_id = id
 
     # charcs = characteristics
     # find existing characteristics for the category and display them
@@ -109,11 +106,11 @@ def edit(id):
     form.category_id.data = category_id
     form.characteristics.data = textarea_content
 
-    return render_template('categories/edit_category.html', navbar_links=navbar_links,
-                           form=form, category_id=category_id)
+    return render_template('categories/edit_category.html', form=form, category_id=category_id)
 
 
 @categories.route('/edit_form_submit/', methods=['POST'])
+@admin_only
 def edit_form_submit():
     # if form was submitted to this address
     form = EditCategoryForm()
@@ -160,7 +157,7 @@ def edit_form_submit():
         except Exception as e:
             return {"message": str(e)}
 
-    return redirect(url_for('categories.list'))
+    return redirect(url_for('admin_panel.list_categories'))
 
 
 @categories.route('/get_characteristics/<short_name>/', methods=['POST'])
@@ -172,7 +169,6 @@ def get_characteristics(short_name):
 
     items = CharacteristicModel.query.filter(CharacteristicModel.category_id == category.id).all()
     result = assemble_to_list(items)
-    print(json.dumps(result))
     return json.dumps(result)
 
 
@@ -183,7 +179,7 @@ def delete(category_id):
     db.session.delete(entity)
     db.session.commit()
 
-    return redirect(url_for('categories.list'))
+    return redirect(url_for('admin_panel.list_categories'))
 
 
 

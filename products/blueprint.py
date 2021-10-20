@@ -8,26 +8,24 @@ from functions import get_navbar, admin_logged
 from decorators import admin_only
 from products.forms import *
 from categories.models import Category
-from characteristics.models import Characteristic
-import json
+from characteristics.models.Characteristic import CharacteristicModel
+from global_settings.models.GlobalSetting import *
 from datetime import datetime
+import json
 
 products = Blueprint('products', __name__, template_folder='templates')
-
-
-def allowed_file(filename) -> bool:
-    """function checks if a filename extension is allowed"""
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @products.route('/')
 def list():
 
-    navbar_links = get_navbar()
     entities = ProductModel.query.all()
 
-    chunks = 3
-    max_chars = 120
+    # get values of global settings
+    chunks = GlobalSettingModelRepository.get('products_in_row')
+    chunks = int(chunks)
+    max_chars = GlobalSettingModelRepository.get('max_chars_on_product_card')
+    max_chars = int(max_chars)
 
     products_list = ProductModelRepository.prepare_list(entities, chunks, max_chars)
 
@@ -36,7 +34,7 @@ def list():
     if len(entities) == 0:
         data_dict['message'] = 'No products found'
 
-    return render_template('products/list_products.html', d=data_dict, navbar_links=navbar_links)
+    return render_template('products/list_products.html', d=data_dict)
 
 
 @products.route('/create/', methods=['GET'])
@@ -47,8 +45,7 @@ def create():
     categories = Category.CategoryModel.query.all()
     form.category.choices = [(c.short_name, c.name) for c in categories]
 
-    navbar_links = {'account.logout': 'Log out'}
-    return render_template('products/create_product.html', navbar_links=navbar_links, form=form)
+    return render_template('products/create_product.html', form=form)
 
 
 @products.route('/validate_create/', methods=['POST'])
@@ -74,17 +71,22 @@ def validate_create():
         # check if extensions of all files are allowed
         allowed_extensions = [allowed_file(file.filename) and secure_filename(file.filename) for file in images]
 
+        upload_path = GlobalSettingModelRepository.get('uploads_path')
+        img_necessary = GlobalSettingModelRepository.get('is_img_necessary_in_product')
+
         try:
             img_names = []
+            # if at least one image was loaded
             if all(allowed_extensions):
                 for file in images:
                     # save all files. each file gets a random name
                     filename = str(uuid4()) + '.' + file.mimetype.split('/')[1]
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    file.save(os.path.join(upload_path, filename))
                     img_names.append(filename)
-            # else:
-            #     # if some files are not allowed, return to a previous page
-            #     return redirect(request.referrer)
+            else:
+                # if some files are not allowed, return to a previous page according to a global setting
+                if img_necessary == 'True':
+                    return redirect(request.referrer)
 
             product_id = ProductModelRepository.create_id()
             date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -105,22 +107,23 @@ def validate_create():
 @products.route('/<product_id>/', methods=['GET'])
 def view(product_id):
     """Method prepares all product's data to be properly displayed."""
-    navbar_links = get_navbar()
 
     product = ProductModel.query.get(product_id)
 
     # get characteristics:
     characteristics = json.loads(product.characteristics)
 
+    upload_path = GlobalSettingModelRepository.get('uploads_path')
+
     product_images = []
     for filename in json.loads(product.img_names):
         # i add a system separator to make a path absolute, otherwise it'll search a 'static' folder inside products
-        product_images.append(os.path.sep + os.path.join(app.config['UPLOAD_FOLDER']) + filename)
+        product_images.append(os.path.sep + os.path.join(upload_path) + filename)
 
     # go through all ids and replace id with a characteristic's name. This may not be an optimal approach
     # (too much requests to the DB)
     for list_item in characteristics:
-        entity = Characteristic.CharacteristicModel.query.get(list_item[0])
+        entity = CharacteristicModel.query.get(list_item[0])
         list_item[0] = entity.name
 
     # find a normal name for a category using a short name
@@ -134,14 +137,12 @@ def view(product_id):
         data_dict['admin_info']['creation_date'] = product.creation_date
         data_dict['admin_info']['last_edited'] = product.last_edited
 
-    return render_template('products/view_product.html', d=data_dict, navbar_links=navbar_links, product=product)
+    return render_template('products/view_product.html', d=data_dict, product=product)
 
 
 @products.route('/edit/<product_id>/', methods=['GET'])
 @admin_only
 def edit(product_id):
-
-    navbar_links = get_navbar()
 
     # Take only fields needed
     form = EditProductForm()
@@ -155,14 +156,16 @@ def edit(product_id):
     product = ProductModel.query.get(product_id)
     product_data = product.__dict__
 
-    # I need to set available choices before inserting data to this field
+    # available choices are set before inserting data to this field
+    # set available categories
     categories = Category.CategoryModel.query.all()
     form.category.choices = [(c.short_name, c.name) for c in categories]
 
+    # insert existing data to form's fields
     for name in field_names:
         form_fields[name].data = product_data[name]
 
-    # insert product's ID into a secret field
+    # insert product's ID into a hidden field
     form.product_id.data = product_id
 
     # get characteristics:
@@ -171,7 +174,7 @@ def edit(product_id):
     # go through all ids and replace id with a characteristic's name. This may not be an optimal approach
     # (too much requests to the DB)
     for list_item in characteristics:
-        entity = Characteristic.CharacteristicModel.query.get(list_item[0])
+        entity = CharacteristicModel.query.get(list_item[0])
         list_item[0] = entity.name
 
     # find a normal name for a category using a short name
@@ -181,8 +184,7 @@ def edit(product_id):
                  'product_id': product.id, 'creation_date': product.creation_date,
                  'last_edited': product.last_edited}
 
-    return render_template('products/edit_product.html', d=data_dict, navbar_links=navbar_links,
-                           product=product, form=form)
+    return render_template('products/edit_product.html', d=data_dict, product=product, form=form)
 
 
 @products.route('/validate_edit/', methods=['POST'])
@@ -207,6 +209,9 @@ def validate_edit():
 
         date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+        upload_path = GlobalSettingModelRepository.get('uploads_path')
+        img_necessary = GlobalSettingModelRepository.get('is_img_necessary_in_product')
+
         try:
 
             img_names = []
@@ -217,11 +222,12 @@ def validate_edit():
                 for file in images:
                     # save all files. each file gets a random name
                     filename = str(uuid4()) + '.' + file.mimetype.split('/')[1]
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    file.save(os.path.join(upload_path, filename))
                     img_names.append(filename)
-            # else:
-            #     # if some files are not allowed, return to a previous page
-            #     return redirect(request.referrer)
+            else:
+                # if some files are not allowed, return to a previous page according to a global setting
+                if img_necessary == 'True':
+                    return redirect(request.referrer)
 
             product_id = data['product_id']
             entity = ProductModel.query.filter(ProductModel.id == product_id).first()
@@ -256,3 +262,9 @@ def delete(product_id):
     db.session.commit()
 
     return redirect(url_for('admin_panel.index'))
+
+
+def allowed_file(filename) -> bool:
+    """function checks if a filename extension is allowed"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
