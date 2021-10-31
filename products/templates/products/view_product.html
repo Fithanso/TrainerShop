@@ -29,25 +29,26 @@
 <div class="container" id="product-block">
 
     <div id="product-img-block" class="carousel slide" data-bs-ride="carousel">
-    <div class="carousel-inner">
-        {% for index in range(d['product_images']|length) %}
-            {% if index == 0 %}
-            <div class="carousel-item active">
-            {% else %}
-            <div class="carousel-item">
-            {% endif %}
-              <img class="d-block w-100" src="{{ d['product_images'][index] }}" alt="First slide">
-            </div>
-        {% endfor %}
-    </div>
-    <button class="carousel-control-prev" type="button" data-bs-target="#product-img-block" data-bs-slide="prev">
-      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-      <span class="visually-hidden">Previous</span>
-    </button>
-    <button class="carousel-control-next" type="button" data-bs-target="#product-img-block" data-bs-slide="next">
-      <span class="carousel-control-next-icon" aria-hidden="true"></span>
-      <span class="visually-hidden">Next</span>
-    </button>
+        <div class="carousel-inner">
+            {% for index in range(d['product_images']|length) %}
+                {% if index == 0 %}
+                <div class="carousel-item active">
+                {% else %}
+                <div class="carousel-item">
+                {% endif %}
+                  <img class="d-block w-100" src="{{ d['product_images'][index] }}" alt="First slide">
+                </div>
+            {% endfor %}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#product-img-block" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#product-img-block" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+        </div>
     </div>
 
     <div class="" id="product-piecesleft-block">
@@ -61,7 +62,7 @@
         </div>
 
         <div class="col-sm-2" id="product-addtocart-block">
-            <a href="#"><button class="btn btn-primary">Add to cart</button></a>
+            <a href="{{url_for('products.add_to_cart', product_id=product.id)}}"><button class="btn btn-primary">Add to cart</button></a>
         </div>
         <div class="col-sm-8"></div>
     </div>

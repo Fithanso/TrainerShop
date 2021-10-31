@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
+"""file stores all abstract classes used in many blueprints"""
+
 
 class Repository(ABC):
 

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Cart
+{% endblock %}
+
+{% block content_title %}
+
+{% if product_rows %}
+    <div class="page-title">
+        <h1> Your cart: </h1>
+    </div>
+
+{%else:%}
+    <div class="page-title">
+        <h1> Your cart is empty :( </h1>
+    </div>
+{% endif %}
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid" id="cart-content">
+    <div class="row">
+        {% if product_rows %}
+            <div class="col-8">
+                {% for product in product_rows %}
+                    <div class="row">
+                        <div class="col-5 cart-product-name">{{ product['product'].name }}</div>
+                        <div class="col-1 cart-product-quantity-control">
+                            <a href="{{url_for('cart.decrease_product_quantity', product_id=product['product'].id)}}">
+                                <i class="fas fa-minus"></i>
+                            </a>
+                        </div>
+                        <div class="col-1 cart-product-quantity">{{ product['quantity'] }}</div>
+                        <div class="col-2 cart-product-quantity-control">
+                          <a href="{{url_for('cart.increase_product_quantity', product_id=product['product'].id)}}">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                        </div>
+                        <div class="col-2 cart-product-price">{{ product['row_price'] }}$</div>
+
+                        <div class="col-1 cart-product-delete">
+                            <a href="{{url_for('cart.delete_product', product_id=product['product'].id)}}">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <hr>
+                {% endfor %}
+            </div>
+            <div class="col-4 text-center" id="cart-proceed-to-order">
+                <span id="order-price">Total: {{ total_price }}$</span>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+

@@ -4,9 +4,10 @@ from flask import Blueprint, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
 from uuid import uuid4
 from products.models.Product import *
-from functions import get_navbar, admin_logged
+from functions import admin_logged, customer_logged
 from decorators import admin_only
 from products.forms import *
+from products.classes.AddToCart import AddToCart, AddToSession, AddToCustomer
 from categories.models import Category
 from characteristics.models.Characteristic import CharacteristicModel
 from global_settings.models.GlobalSetting import *
@@ -251,6 +252,20 @@ def validate_edit():
             return {"message": str(e)}
 
         return redirect(url_for('admin_panel.index'))
+
+
+@products.route('/add-to-cart/<product_id>/', methods=['GET'])
+def add_to_cart(product_id):
+    if customer_logged():
+        strategy = AddToCustomer()
+    else:
+        strategy = AddToSession()
+
+    to_cart_adder = AddToCart(strategy)
+    to_cart_adder.add_product(product_id)
+
+    # redirect back to product's page
+    return redirect(request.referrer)
 
 
 @products.route('/delete/<product_id>/', methods=['GET'])

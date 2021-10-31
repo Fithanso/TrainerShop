@@ -19,20 +19,31 @@ def set_session_vars(**kwargs):
         session[key] = value
 
 
+def del_session_vars(*args):
+    """Function deletes session variables"""
+    for key in args:
+        session.pop(key, None)
+
+
+
 def get_navbar() -> dict:
     """Function returns navbar links depending on who is logged in"""
     navbar_links = {'account.signup': 'Sign up', 'account.login': 'Log in', 'products.list': 'Products',
-                    'categories.list': 'Categories'}
+                    'categories.list': 'Categories', 'cart.index': 'My cart'}
+
+    if session.get('admin'):
+        del navbar_links['products.list']
+        del navbar_links['categories.list']
+        del navbar_links['cart.index']
+        navbar_links['admin_panel.index'] = 'Dashboard'
+
+    if session.get('customer'):
+        navbar_links['account.index'] = 'Profile'
 
     if session.get('customer') or session.get('admin'):
         del navbar_links['account.login']
         del navbar_links['account.signup']
         navbar_links['account.logout'] = 'Log out'
-
-    if session.get('admin'):
-        del navbar_links['products.list']
-        del navbar_links['categories.list']
-        navbar_links['admin_panel.index'] = 'Dashboard'
 
     return navbar_links
 

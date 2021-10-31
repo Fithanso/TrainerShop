@@ -11,6 +11,10 @@ p {
     font-size: 1.3em;
 }
 
+.page-title {
+    margin-top: 50px;
+}
+
 .form-upper-error {
     color: #D83434;
 }
@@ -81,6 +85,38 @@ p {
     width: 100%;
     height: 100%;
 }
+
+/* CART */
+
+#cart-content {
+    margin-top: 50px;
+}
+
+.cart-product-name {
+    font-size: 1.4em;
+}
+
+.cart-product-quantity {
+    font-size: 1.4em;
+}
+
+.cart-product-price {
+    font-size: 1.6em;
+}
+
+.cart-product-delete a {
+    color: red;
+    font-size: 1.5em;
+}
+
+#cart-proceed-to-order {
+
+}
+
+#order-price {
+    font-size: 2em;
+}
+
 
 
 

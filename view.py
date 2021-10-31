@@ -1,6 +1,5 @@
 from app import app
 from flask import render_template, session, request
-from models import *
 from functions import *
 
 

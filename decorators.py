@@ -62,12 +62,11 @@ def unavailable_for_logged_admin(func):
     return wrapper
 
 
-
 def login_required(func):
     """redirects user to login page if he is not logged in"""
     @wraps(func)
     def wrapper(**kwargs):
-        if not session.get('customer') or not session.get('admin'):
+        if session.get('customer') or session.get('admin'):
             return func()
         return redirect(url_for('account.login'))
 

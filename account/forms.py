@@ -1,6 +1,17 @@
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, DateField
 from wtforms.validators import DataRequired, Length, Email
 from flask_wtf import FlaskForm
+
+
+class EditAccountForm(FlaskForm):
+    login = StringField('Login')
+    password = PasswordField('Password')
+    name = StringField('Name')
+    surname = StringField('Surname')
+    patronymic = StringField('Patronymic (if there is)')
+    delivery_address = StringField('Delivery address')
+    birthday = DateField('Birthday')
+    submit = SubmitField('Edit personal data')
 
 
 class SignupForm(FlaskForm):

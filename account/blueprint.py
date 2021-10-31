@@ -15,7 +15,28 @@ account = Blueprint('account', __name__, template_folder='templates')
 @unavailable_for_admin
 @login_required
 def index():
-    return render_template('account/account.html')
+
+    form = EditAccountForm()
+
+    return render_template('account/account.html', form=form)
+
+
+@account.route('/validate-personal-data-edit/', methods=['POST'])
+@unavailable_for_admin
+@login_required
+def validate_personal_data_edit():
+
+    form = EditAccountForm()
+
+    if form.validate_on_submit():
+        data = request.form
+
+        try:
+           pass
+        except Exception as e:
+            return {"message": str(e)}
+
+        return redirect(url_for('account.index'))
 
 
 @account.route('/signup/', methods=['GET', 'POST'])
@@ -49,9 +70,7 @@ def login():
     """Operation of login is implemented using C-o-R pattern. Customers and admins can log in using just one form."""
     form = LoginForm()
 
-    if request.method == 'GET':
-        return render_template('account/login.html', form=form)
-    elif request.method == 'POST':
+    if form.validate_on_submit():
         data = request.form
 
         customer_handler = CustomerLoginHandler()
@@ -64,6 +83,8 @@ def login():
             return result
         else:
             return render_template('account/login.html', form=form, er='Email or login is invalid')
+
+    return render_template('account/login.html', form=form)
 
 
 @account.route('/logout/', methods=['GET'])
