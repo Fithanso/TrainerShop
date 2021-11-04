@@ -1,6 +1,12 @@
-from wtforms import StringField, PasswordField, SubmitField, DateField
-from wtforms.validators import DataRequired, Length, Email
+from wtforms import StringField, PasswordField, SubmitField
+from wtforms.fields.html5 import DateField
+from wtforms.validators import DataRequired, Length, Email, Optional
 from flask_wtf import FlaskForm
+
+
+class NonValidatingDateField(DateField):
+    def pre_validate(self, form):
+        pass
 
 
 class EditAccountForm(FlaskForm):
@@ -10,7 +16,8 @@ class EditAccountForm(FlaskForm):
     surname = StringField('Surname')
     patronymic = StringField('Patronymic (if there is)')
     delivery_address = StringField('Delivery address')
-    birthday = DateField('Birthday')
+    birthday = DateField('Birthday', format='%Y-%m-%d', validators=[Optional()])
+
     submit = SubmitField('Edit personal data')
 
 

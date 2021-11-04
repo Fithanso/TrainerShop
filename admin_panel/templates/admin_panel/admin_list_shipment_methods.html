@@ -1,0 +1,30 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}
+Admin Panel
+{% endblock %}
+
+{% block page_title %}
+<h1>Shipment methods</h1>
+<h3>Here you can create or delete shipment methods for the store</h3>
+{% endblock %}
+
+
+{% block upper_panel %}
+    <div class="admin-button">
+        <a aria-current="page" href="{{url_for('shipment.create')}}">Create shipment method</a>
+    </div>
+{% endblock %}
+
+
+{% block content %}
+    <br>
+    <p>{{d['message']}}</p>
+    <div class="list-group" id="shipment_methods-list">
+        {% for method in d['shipment_methods'] %}
+        <a href="{{url_for('shipment.edit', shipment_method_id=method.id)}}" class="list-group-item">
+            {{method.name}}
+        </a>
+        {% endfor %}
+    </div>
+{% endblock %}

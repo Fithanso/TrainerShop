@@ -6,34 +6,37 @@ import random
 import os
 
 
-class ProductModel(db.Model):
-    __tablename__ = 'product'
+class OrderModel(db.Model):
+    __tablename__ = 'order'
     __table_args__ = {'extend_existing': True}  # added this because sqlalchemy was dropping an error. seems that
     # I shouldn't have created tables through pgAdmin, but using SqlAlchemy
 
     id = db.Column(db.BigInteger, primary_key=True)
-    name = db.Column(db.String())
-    description = db.Column(db.Text())
-    price = db.Column(db.Integer())
-    pieces_left = db.Column(db.Integer())
-    category = db.Column(db.String())
-    characteristics = db.Column(db.Text())
-    box_dimensions = db.Column(db.String())
-    weight = db.Column(db.SmallInteger())
-    img_names = db.Column(db.Text())
-    creation_date = db.Column(db.DateTime())
-    last_edited = db.Column(db.DateTime())
+    customer_id = db.Column(db.BigInteger())
+    purchased_products = db.Column(db.JSON())
+    order_datetime = db.Column(db.DateTime())
+    received = db.Column(db.Boolean())
+    shipment_method = db.Column(db.SmallInteger())
+    boxes_content = db.Column(db.JSON())
+    courier_id = db.Column(db.SmallInteger())
+    customer_registered = db.Column(db.Boolean())
+    recipient_name = db.Column(db.String())
+    recipient_surname = db.Column(db.String())
+    recipient_patronymic = db.Column(db.String())
+    recipient_phone_number = db.Column(db.String())
+    recipient_email = db.Column(db.String())
+    total_price = db.Column(db.Integer())
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"<Product {self.name}>"
+        return f"<Order {self.id}>"
 
 
-class ProductModelRepository(Repository):
+class OrderModelRepository(Repository):
 
-    model = ProductModel
+    model = OrderModel
 
     """Method generates unique id according to maximum integer possible and checks for duplicates in the table.
     """
@@ -52,8 +55,8 @@ class ProductModelRepository(Repository):
 
         #  if a product with the same id is found, then rerun function
 
-        if ProductModelRepository.model.query.get(unique_id):
-            ProductModelRepository.create_id()
+        if OrderModelRepository.model.query.get(unique_id):
+            OrderModelRepository.create_id()
         else:
             return unique_id
         return 0

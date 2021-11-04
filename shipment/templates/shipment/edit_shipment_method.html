@@ -1,0 +1,47 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}
+Admin Panel
+{% endblock %}
+
+{% block page_title %}
+<h1>Edit global setting</h1>
+{% endblock %}
+
+
+{% block content %}
+<h4>If a setting means to be of boolean type, then write True or False in a value field.</h4>
+
+{% for field, errors in form.errors.items() %}
+    <small class="form-upper-error">
+        {{ ' '.join(errors) }}
+    </small>
+{% endfor %}
+<form action="{{ url_for('shipment.validate_edit') }}" method="POST">
+  <div class="col-md-6">
+      {{ form.hidden_tag() }}
+      {% for field in form if field.name not in ["csrf_token", "submit", "shipment_method_id"]%}
+
+        <div class="form-group">
+            <p>{{ field.label() }}</p>
+            <p>
+                {{ field }}
+                {% for error in field.errors %}
+                    {{ error }}
+                {% endfor %}
+            </p>
+        </div>
+      {% endfor %}
+
+      {{ form.submit(class="btn btn-primary") }}
+  </div>
+</form>
+
+
+{% endblock %}
+
+{% block footer %}
+<a href="{{ url_for('shipment.delete', shipment_method_id=shipment_method_id) }}" class="btn btn-danger">
+  Delete shipment method (impossible now)
+</a>
+{% endblock %}

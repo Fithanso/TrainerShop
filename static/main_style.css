@@ -117,7 +117,25 @@ p {
     font-size: 2em;
 }
 
+#cart-buy-btn {
+    margin-top: 50px;
+    font-size: 3em;
+    width: 50%;
+    height: 50%;
+    border-radius: 20px;
+}
 
+#success-order-img {
+    margin: 50px 0px 50px 0px;
+    width: 600px;
+    height: auto;
+}
+
+/* PROFILE */
+
+#orders-history-block {
+    margin-top: 50px;
+}
 
 
 

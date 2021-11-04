@@ -47,21 +47,6 @@ def unavailable_for_logged_customer(func):
     return wrapper
 
 
-def unavailable_for_logged_admin(func):
-    @wraps(func)
-    def wrapper(**kwargs):
-        if session.get('admin'):
-            return redirect(url_for('admin_panel.index'))
-        # parameters presence needs to be checked, because there might be parameters passed in url,
-        # which will go through my decorator
-        if kwargs:
-            return func(**kwargs)
-        else:
-            return func()
-
-    return wrapper
-
-
 def login_required(func):
     """redirects user to login page if he is not logged in"""
     @wraps(func)

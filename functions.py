@@ -1,5 +1,14 @@
 import hashlib
 from flask import session
+from flask_wtf import FlaskForm
+import json
+
+
+def json_load(obj, datatype=list):
+    """sometimes object need to be loaded multiple times, and the function comes in handy"""
+    while not isinstance(obj, datatype):
+        obj = json.loads(obj)
+    return obj
 
 
 def encrypt_sha1(string) -> str:
@@ -23,7 +32,6 @@ def del_session_vars(*args):
     """Function deletes session variables"""
     for key in args:
         session.pop(key, None)
-
 
 
 def get_navbar() -> dict:
@@ -60,4 +68,21 @@ def customer_logged() -> bool:
     if session.get('customer'):
         return True
     return False
+
+
+def insert_data_into_form(entity, form, exclude=()) -> FlaskForm:
+    entity_data = entity.__dict__
+    form_fields = form.__dict__['_fields']
+
+    # take only fields needed, exclude other
+    field_names = set(form_fields.keys())
+
+    for name in exclude:
+        field_names.remove(name)
+
+    for name in field_names:
+        form_fields[name].data = entity_data[name]
+
+    return form
+
 

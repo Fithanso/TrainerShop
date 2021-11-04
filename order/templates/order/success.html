@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Order complete
+{% endblock %}
+
+{% block content_title %}
+
+<div class="page-title">
+    <h1>Thank you!</h1>
+</div>
+
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+    <img id="success-order-img" src="{{ url_for('static', filename='/system/puck.png') }}">
+
+    <h2>Order ID is:</h2>
+    <h3>{{order_id}}</h3>
+    <br><br>
+    <h3>Our manager will call you soon to confirm your order</h3>
+
+</div>
+{% endblock %}
+
+

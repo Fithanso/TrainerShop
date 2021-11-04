@@ -22,7 +22,7 @@ Admin Panel
     <p>{{d['message']}}</p>
     <div class="list-group" id="global-settings-list">
         {% for setting in d['global_settings'] %}
-        <a href="{{url_for('global_settings.edit', id=setting.id)}}" class="list-group-item">
+        <a href="{{url_for('global_settings.edit', global_setting_id=setting.id)}}" class="list-group-item">
             {{setting.name}}
         </a>
         {% endfor %}

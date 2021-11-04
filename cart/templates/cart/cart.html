@@ -50,7 +50,9 @@ Cart
                 {% endfor %}
             </div>
             <div class="col-4 text-center" id="cart-proceed-to-order">
-                <span id="order-price">Total: {{ total_price }}$</span>
+                <span id="order-price">Total without shipment: {{ total_price }}$</span>
+                <br>
+                <a href="{{url_for('order.create')}}"><button type="button" id="cart-buy-btn" class="btn btn-warning">Buy</button></a>
             </div>
         {% endif %}
     </div>

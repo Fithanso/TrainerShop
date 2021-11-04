@@ -29,25 +29,23 @@ def create():
     return render_template('global_settings/create_global_setting.html', form=form)
 
 
-@global_settings.route('/edit/<id>', methods=['GET'])
+@global_settings.route('/edit/<global_setting_id>', methods=['GET'])
 @admin_only
-def edit(id):
+def edit(global_setting_id):
     form = EditGlobalSettingForm()
-
-    global_setting_id = id
 
     existing_global_setting = GlobalSettingModel.query.get(global_setting_id)
 
-    form.name.data = existing_global_setting .name
+    form.name.data = existing_global_setting.name
     form.value.data = existing_global_setting.value
-    form.global_setting_id.data = id
+    form.global_setting_id.data = global_setting_id
 
     return render_template('global_settings/edit_global_setting.html', form=form, global_setting_id=global_setting_id)
 
 
-@global_settings.route('/edit_form_submit/', methods=['POST'])
+@global_settings.route('/edit/', methods=['POST'])
 @admin_only
-def edit_form_submit():
+def validate_edit():
 
     form = EditGlobalSettingForm()
 

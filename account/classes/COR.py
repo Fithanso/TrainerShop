@@ -16,7 +16,7 @@ class CustomerLoginHandler(AbstractHandler):
                 set_session_vars(customer={'customer_id': customer.id})
                 # active cart now means nothing since a customer is already logged in
                 del_session_vars('active_cart')
-                return redirect(url_for('account.index'))
+                return redirect(url_for('products.list'))
             else:
                 return False
         else:

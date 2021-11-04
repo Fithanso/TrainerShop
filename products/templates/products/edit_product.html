@@ -10,9 +10,9 @@ Admin Panel
 
 {% block upper_panel %}
     <div id="admin_info">
-        <p>Product ID: {{d['product_id']}}</p>
-        <p>Created at: {{d['creation_date']}}</p>
-        <p>Last edited at: {{d['last_edited']}}</p>
+        <p>Product ID: {{product.id}}</p>
+        <p>Created at: {{product.creation_date}}</p>
+        <p>Last edited at: {{product.last_edited}}</p>
     </div>
 {% endblock %}
 
@@ -70,5 +70,5 @@ Admin Panel
 {% endblock %}
 
 {% block footer %}
-<a href="{{ url_for('products.delete', product_id=d['product_id']) }}" class="btn btn-danger">Delete product</a>
+<a href="{{ url_for('products.delete', product_id=product.id) }}" class="btn btn-danger">Delete product</a>
 {% endblock %}

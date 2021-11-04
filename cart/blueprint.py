@@ -1,8 +1,8 @@
 from app import *
-import os
 from flask import Blueprint, render_template, request, redirect, url_for
 from products.models.Product import *
-from functions import get_navbar, admin_logged, customer_logged
+from decorators import unavailable_for_admin
+from functions import customer_logged
 from global_settings.models.GlobalSetting import *
 from cart.classes.GetCartProducts import GetCartProducts, GetCartFromCustomer, GetCartFromSession
 from cart.classes.ChangeQuantityInCart import ChangeQuantityInCart, IncreaseInCustomer, IncreaseInSession, \
@@ -13,6 +13,7 @@ cart = Blueprint('cart', __name__, template_folder='templates')
 
 
 @cart.route('/', methods=['GET'])
+@unavailable_for_admin
 def index():
     if customer_logged():
         strategy = GetCartFromCustomer()
@@ -37,6 +38,7 @@ def index():
 
 
 @cart.route('/increase-product-quantity/<product_id>', methods=['GET'])
+@unavailable_for_admin
 def increase_product_quantity(product_id):
     """Operations of increase and decrease and strategies are separated because of a potential business logic inside"""
 
@@ -52,6 +54,7 @@ def increase_product_quantity(product_id):
 
 
 @cart.route('/decrease-product-quantity/<product_id>', methods=['GET'])
+@unavailable_for_admin
 def decrease_product_quantity(product_id):
 
     if customer_logged():
@@ -66,6 +69,7 @@ def decrease_product_quantity(product_id):
 
 
 @cart.route('/delete-product/<product_id>', methods=['GET'])
+@unavailable_for_admin
 def delete_product(product_id):
 
     if customer_logged():

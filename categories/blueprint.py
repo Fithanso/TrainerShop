@@ -1,14 +1,12 @@
-from app import db, app
+from app import db
 from flask import Blueprint, render_template, request, redirect, url_for
-from functions import get_navbar
 from categories.models.Category import CategoryModel, CategoryModelRepository
-from characteristics.models.Characteristic import CharacteristicModel, CharacteristicModelRepository
+from models.Characteristic import CharacteristicModel, CharacteristicModelRepository
 from products.models.Product import ProductModel, ProductModelRepository
 from global_settings.models.GlobalSetting import GlobalSettingModelRepository
 from decorators import admin_only
 from categories.forms import *
 import json
-import os
 
 categories = Blueprint('categories', __name__, template_folder='templates')
 

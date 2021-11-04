@@ -18,6 +18,7 @@ class CustomerModel(db.Model):
     delivery_address = db.Column(db.String())
     last_visit = db.Column(db.DateTime())
     register_date = db.Column(db.DateTime())
+    phone_number = db.Column(db.String())
     active_cart = db.Column(db.String())
     orders = db.Column(db.Text())
 
