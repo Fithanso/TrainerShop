@@ -15,7 +15,7 @@ Profile
 <div class="container">
     <div class="row">
         <div class="col-5">
-            <form id="personal-data-form" action="{{ url_for('account.validate_personal_data_edit') }}" method="POST" enctype="multipart/form-data">
+            <form id="personal-data-form" action="{{ url_for('account.personal_data_edit') }}" method="POST" enctype="multipart/form-data">
                 {{ form.csrf_token() }}
 
                 {% for field in form if field.name != "csrf_token" and field.name != "submit" %}
@@ -38,14 +38,13 @@ Profile
             <div id="orders-history-block">
                 {% for order in orders %}
                     <br>
-                    <h3>{{order['id']}}</h3>
+                    <h3>{{order['entity'].id}}</h3>
                     <br>
-                    <p>Ordered: {{order['datetime']}}</p>
+                    <p>Ordered: {{order['entity'].order_datetime}}</p>
                     <p>{{order['products'] | safe}}</p>
                     <p>Price: {{order['total_price']}}</p>
                     <br>
-                    <p>Including shipment: </p>
-                    <p>{{order['shipment']}}</p>
+                    <p>Including shipment: {{order['shipment']}}</p>
                     <br>
                     {{order['received'] | safe}}
                     <hr>

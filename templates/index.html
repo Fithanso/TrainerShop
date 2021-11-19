@@ -1,5 +1,14 @@
 {% extends 'base.html' %}
 
 {% block title %}
-8 Bit
+Main page
+{% endblock %}
+
+
+{% block content %}
+<div class="container main-page-container">
+    {% if easter_egg == 1 %}
+        <img src="{{ url_for('static', filename='system/puck_easter_egg.png') }}" id="main-page-easter-egg">
+    {% endif %}
+</div>
 {% endblock %}

@@ -26,7 +26,7 @@ class CustomerModel(db.Model):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"<Client {self.email}>"
+        return f"<Customer {self.email}>"
 
 
 class CustomerModelRepository(Repository):

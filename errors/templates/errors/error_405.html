@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Error 404
+{% endblock %}
+
+
+{% block content %}
+<div class="container error-page-container">
+    <img src="{{url_for('static', filename='/system/puck_stands.png')}}">
+    <br><br>
+    <h1 class="error-code">405</h1>
+    <br><br>
+    <h1>You are not allowed to be here!</h1>
+    <h2>Get out of here!</h2>
+
+</div>
+{% endblock %}

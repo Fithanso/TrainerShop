@@ -33,12 +33,12 @@ class DeleteCart:
 class DeleteInCustomer(Strategy):
     def delete_cart(self):
         customer_id = session.get('customer')['customer_id']
-        customer = CustomerModel.query.get(customer_id)
+        customer_entity = CustomerModel.query.get(customer_id)
 
         # condition may be pointless, but I'll leave it anyway, in case the direct request is sent
-        if customer.active_cart is not None:
+        if customer_entity.active_cart is not None:
             empty_cart = {}
-            customer.active_cart = json.dumps(empty_cart)
+            customer_entity.active_cart = json.dumps(empty_cart)
 
             db.session.commit()
 

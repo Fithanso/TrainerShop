@@ -8,6 +8,7 @@ from global_settings.blueprint import global_settings
 from cart.blueprint import cart
 from order.blueprint import order
 from shipment.blueprint import shipment
+from errors.blueprint import errors
 
 app.register_blueprint(products, url_prefix='/products/')
 app.register_blueprint(categories, url_prefix='/categories/')
@@ -17,6 +18,8 @@ app.register_blueprint(global_settings, url_prefix='/global_settings/')
 app.register_blueprint(cart, url_prefix='/cart/')
 app.register_blueprint(order, url_prefix='/order/')
 app.register_blueprint(shipment, url_prefix='/shipment/')
+app.register_blueprint(errors, url_prefix='/errors/')
+
 
 if __name__ == '__main__':
     app.run(debug=True)

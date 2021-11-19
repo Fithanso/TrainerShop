@@ -26,7 +26,11 @@ Cart
             <div class="col-8">
                 {% for product in product_rows %}
                     <div class="row">
-                        <div class="col-5 cart-product-name">{{ product['product'].name }}</div>
+                        <div class="col-5 cart-product-name">
+                            <a href="{{ url_for('products.view', product_id=product['product'].id) }}">
+                                {{ product['product'].name }}
+                            </a>
+                        </div>
                         <div class="col-1 cart-product-quantity-control">
                             <a href="{{url_for('cart.decrease_product_quantity', product_id=product['product'].id)}}">
                                 <i class="fas fa-minus"></i>

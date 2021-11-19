@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Search order
+{% endblock %}
+
+{% block content_title %}
+
+<div class="page-title">
+    <h1>Search order</h1>
+    <br>
+    <h2>Use only one field</h2>
+</div>
+
+
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <form id="search-order-form" action="{{url_for('order.validate_search')}}" method="POST">
+            {{ form.hidden_tag() }}
+            {% for field in form if field.name not in ["csrf_token", "submit"]%}
+
+            <div class="form-group">
+                <p>{{ field.label() }}</p>
+                <p>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </p>
+            </div>
+
+            {% endfor %}
+
+            {{ form.submit(class="btn btn-primary") }}
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+

@@ -32,11 +32,11 @@
         <div class="carousel-inner">
             {% for index in range(d['product_images']|length) %}
                 {% if index == 0 %}
-                <div class="carousel-item active">
+                    <div class="carousel-item active">
                 {% else %}
-                <div class="carousel-item">
+                    <div class="carousel-item">
                 {% endif %}
-                  <img class="d-block w-100" src="{{ d['product_images'][index] }}" alt="First slide">
+                    <img class="d-block w-100" src="{{ d['product_images'][index] }}">
                 </div>
             {% endfor %}
         </div>
@@ -61,9 +61,11 @@
             <p>{{product.price ~ '$'}}</p>
         </div>
 
+        {% if d['add_to_cart_possible'] != False %}
         <div class="col-sm-2" id="product-addtocart-block">
             <a href="{{url_for('products.add_to_cart', product_id=product.id)}}"><button class="btn btn-primary">Add to cart</button></a>
         </div>
+        {% endif %}
         <div class="col-sm-8"></div>
     </div>
 

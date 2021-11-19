@@ -33,10 +33,10 @@ class GetCartProducts:
 class GetCartFromCustomer(Strategy):
     def get_products(self):
         customer_id = session.get('customer')['customer_id']
-        customer = CustomerModel.query.get(customer_id)
+        customer_entity = CustomerModel.query.get(customer_id)
 
-        if customer.active_cart is not None:
-            cart_products = json.loads(customer.active_cart)
+        if customer_entity.active_cart is not None:
+            cart_products = json.loads(customer_entity.active_cart)
         else:
             cart_products = {}
 

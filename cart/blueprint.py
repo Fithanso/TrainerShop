@@ -29,10 +29,14 @@ def index():
     if products_quantity:
         for product_id, quantity in products_quantity.items():
             product_entity = ProductModel.query.get(int(product_id))
-            product_rows.append({'product': product_entity, 'quantity': quantity,
-                                 'row_price': product_entity.price * quantity})
+            if product_entity:
+                product_rows.append({'product': product_entity, 'quantity': quantity,
+                                     'row_price': product_entity.price * quantity})
 
-            total_price += product_entity.price * quantity
+                total_price += product_entity.price * quantity
+            else:
+                # Product may be already deleted
+                return redirect(url_for('cart.delete_product', product_id=product_id))
 
     return render_template('cart/cart.html', product_rows=product_rows, total_price=total_price)
 
@@ -50,7 +54,7 @@ def increase_product_quantity(product_id):
     quantity_changer = ChangeQuantityInCart(strategy)
     quantity_changer.change_quantity(product_id)
 
-    return redirect(request.referrer)
+    return redirect(url_for('cart.index'))
 
 
 @cart.route('/decrease-product-quantity/<product_id>', methods=['GET'])
@@ -63,9 +67,12 @@ def decrease_product_quantity(product_id):
         strategy = DecreaseInSession()
 
     quantity_changer = ChangeQuantityInCart(strategy)
-    quantity_changer.change_quantity(product_id)
+    new_quantity = quantity_changer.change_quantity(product_id)
 
-    return redirect(request.referrer)
+    if new_quantity == 0:
+        return redirect(url_for('cart.delete_product', product_id=product_id))
+
+    return redirect(url_for('cart.index'))
 
 
 @cart.route('/delete-product/<product_id>', methods=['GET'])
@@ -80,6 +87,6 @@ def delete_product(product_id):
     product_deleter = DeleteInCart(strategy)
     product_deleter.delete_product(product_id)
 
-    return redirect(request.referrer)
+    return redirect(url_for('cart.index'))
 
 

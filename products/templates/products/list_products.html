@@ -6,19 +6,33 @@ All products
 
 
 {% block content %}
-<p>{{d['message']}}</p>
-{% for list in d['products']%}
-<div class="row" id="products-list-block">
-    {% for product in list %}
-        <div class="card products-list-card">
-            <img src="{{ product.icon_path }}" class="card-img-top" alt="{{product.name}}">
-            <div class="card-body">
-                <h5 class="card-title">{{product.name}}</h5>
-                <p class="card-text">{{product.description}}</p>
-                <a href="{{ url_for('products.view', product_id=product.id) }}" class="btn btn-primary">Watch</a>
+{% if d['error_message'] %}
+    <br><br>
+    <p>{{d['error_message']}}</p>
+
+{% else %}
+    {% for list in d['products']%}
+    <div class="row" id="products-list-block">
+        {% for product in list %}
+            <div class="card products-list-card">
+                <div class="card-top-img">
+                    <img src="{{ product.icon_path }}" alt="{{product.name}}">
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('products.view', product_id=product.id) }}" class="view-product-link">
+                        <h3 class="card-title">{{product.name}}</h3>
+                    </a>
+                    <p class="card-text">{{product.description}}</p>
+                    {% if d['add_to_cart_possible'] != False %}
+                    <a href="{{url_for('products.add_to_cart', product_id=product.id)}}">
+                        <button class="btn btn-primary">Add to cart</button>
+                    </a>
+                    {% endif %}
+                </div>
             </div>
-        </div>
+        {% endfor %}
+    </div>
     {% endfor %}
-</div>
-{% endfor %}
+
+{% endif %}
 {% endblock %}

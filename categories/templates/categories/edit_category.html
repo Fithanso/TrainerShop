@@ -17,7 +17,7 @@ Admin Panel
         {{ ' '.join(errors) }}
     </small>
 {% endfor %}
-<form action="{{ url_for('categories.edit_form_submit') }}" method="POST">
+<form action="{{ url_for('categories.validate_edit') }}" method="POST">
   <div class="col-md-6">
 
     {{form.hidden_tag()}}

@@ -7,6 +7,7 @@ import os
 
 
 class ProductModel(db.Model):
+    __searchable__ = ['name', 'description']
     __tablename__ = 'product'
     __table_args__ = {'extend_existing': True}  # added this because sqlalchemy was dropping an error. seems that
     # I shouldn't have created tables through pgAdmin, but using SqlAlchemy
@@ -62,6 +63,9 @@ class ProductModelRepository(Repository):
     def prepare_list(entities, chunks, max_chars):
         """Method takes Product entities and makes them ready to be displayed. List of entities is splitted \
         into chunks, additional information about each is loaded"""
+
+        if not entities:
+            return None
 
         # split all products into chunks of certain length - n. It is needed to display them in rows of n elements
         products_list = [entities[i:i + chunks] for i in range(0, len(entities), chunks)]

@@ -27,6 +27,7 @@ div.admin-upper-links {
 div.admin-upper-links a{
 	color: white;
 	font-size: 30pt;
+	line-height: 40px;
 }
 
 div#categories-list {
@@ -41,3 +42,4 @@ div.admin-button {
     text: white;
 
 }
+

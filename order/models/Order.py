@@ -1,9 +1,12 @@
 from app import db, BIGINT_MAX, BIGINT_LEN
 from classes.abstract import Repository
 from global_settings.models.GlobalSetting import GlobalSettingModelRepository
+from products.models.Product import ProductModel
+from shipment.models.ShipmentMethod import ShipmentMethodModel
 import json
 import random
 import os
+from typing import List
 
 
 class OrderModel(db.Model):
@@ -35,11 +38,11 @@ class OrderModel(db.Model):
 
 
 class OrderModelRepository(Repository):
-
     model = OrderModel
 
     """Method generates unique id according to maximum integer possible and checks for duplicates in the table.
     """
+
     @staticmethod
     def create_id() -> int:
 
@@ -87,3 +90,37 @@ class OrderModelRepository(Repository):
             setattr(product, 'description', description)
 
         return products_list
+
+    @staticmethod
+    def get_orders_info(order_entities) -> List:
+        """function iterates all order entities and extracts the information needed"""
+        orders = []
+
+        # go through all orders and get information about them
+        for order_entity in order_entities:
+            purchased_products = json.loads(order_entity.purchased_products)
+
+            products_rows = ''
+            for product_id, quantity in purchased_products.items():
+                product_entity = ProductModel.query.get(int(product_id))
+
+                product_row = product_entity.name + ': ' + str(quantity) + '<br>'
+
+                products_rows += product_row
+
+                if not order_entity.received:
+                    received = '<p style="color: red">Not received</p>'
+                else:
+                    received = '<p style="color: green">Received</p>'
+
+            shipment_method_entity = ShipmentMethodModel.query.get(order_entity.shipment_method)
+            s = shipment_method_entity
+            shipment = s.name + ': ' + str(s.cost) + '$'
+
+            order_dict = {'entity': order_entity, 'products': products_rows,
+                          'total_price': str(order_entity.total_price) + ' $',
+                          'received': received, 'shipment': shipment}
+
+            orders.append(order_dict)
+
+        return orders

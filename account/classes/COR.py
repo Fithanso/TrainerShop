@@ -25,10 +25,10 @@ class CustomerLoginHandler(AbstractHandler):
 
 class AdminLoginHandler(AbstractHandler):
     def handle(self, data: Any):
-        admin = AdminModel.query.filter(AdminModel.email == data['email']).first()
+        admin_entity = AdminModel.query.filter(AdminModel.email == data['email']).first()
 
-        if admin and admin.password == data['password']:
-            set_session_vars(admin={'admin_id': admin.id})
+        if admin_entity and password_valid(admin_entity.password, data['password']):
+            set_session_vars(admin={'admin_id': admin_entity.id})
             return redirect(url_for('admin_panel.index'))
         return False
 

@@ -11,27 +11,65 @@ from models.Characteristic import CharacteristicModel
 from global_settings.models.GlobalSetting import *
 from datetime import datetime
 import json
+from sqlalchemy import desc
+
 
 products = Blueprint('products', __name__, template_folder='templates')
 
 
 @products.route('/')
 def list():
+    product_entities = ProductModel.query.order_by(desc(ProductModel.creation_date)).all()
 
-    entities = ProductModel.query.all()
+    products_list = prepare_for_display(product_entities)
 
+    data_dict = {'products': products_list}
+
+    if not product_entities:
+        data_dict['error_message'] = 'No products found'
+
+    if admin_logged():
+        data_dict['add_to_cart_possible'] = False
+
+    return render_template('products/list_products.html', d=data_dict)
+
+
+@products.route('/search/', methods=['GET'])
+def search():
+
+    search_query = request.args.get('search_product')
+
+    data_dict = {}
+
+    if search_query.strip() == '':
+        data_dict['error_message'] = 'Search query is empty'
+    else:
+        results_by_name = search_by_field('name', search_query)
+        results_by_description = search_by_field('description', search_query)
+        search_results = results_by_name + results_by_description
+
+        if search_results:
+            products_list = prepare_for_display(search_results)
+            data_dict['products'] = products_list
+        else:
+            data_dict['error_message'] = 'No products found. Try another query'
+
+    return render_template('products/list_products.html', d=data_dict)
+
+
+def search_by_field(field, search_query) -> List:
+    search_query = "%{}%".format(search_query)
+    result_entities = ProductModel.query.filter(getattr(ProductModel, field).ilike(search_query)).all()
+    return result_entities
+
+
+def prepare_for_display(entities) -> List:
     # get values of global settings
     chunks = int(GlobalSettingModelRepository.get('products_in_row'))
     max_chars = int(GlobalSettingModelRepository.get('max_chars_on_product_card'))
 
     products_list = ProductModelRepository.prepare_list(entities, chunks, max_chars)
-
-    data_dict = {'products': products_list}
-
-    if len(entities) == 0:
-        data_dict['message'] = 'No products found'
-
-    return render_template('products/list_products.html', d=data_dict)
+    return products_list
 
 
 @products.route('/create/', methods=['GET'])
@@ -39,13 +77,13 @@ def list():
 def create():
     form = CreateProductForm()
 
-    categories = Category.CategoryModel.query.all()
-    form.category.choices = [(c.short_name, c.name) for c in categories]
+    category_entities = Category.CategoryModel.query.all()
+    form.category.choices = [(c.short_name, c.name) for c in category_entities]
 
     return render_template('products/create_product.html', form=form)
 
 
-@products.route('/validate_create/', methods=['POST'])
+@products.route('/create/', methods=['POST'])
 @admin_only
 def validate_create():
     """Method creates a new product. There were two options for me: 1) to store all necessary data inside an entity,
@@ -97,45 +135,37 @@ def validate_create():
         return redirect(url_for('admin_panel.index'))
 
 
-def save_images(images, upload_path):
-    img_names = []
-    for file in images:
-        # save all files. each file gets a random name
-        filename = str(uuid4()) + '.' + file.mimetype.split('/')[1]
-        file.save(os.path.join(upload_path, filename))
-        img_names.append(filename)
-
-    return img_names
-
-
-@products.route('/<product_id>/', methods=['GET'])
+@products.route('/<int:product_id>/', methods=['GET'])
 def view(product_id):
     """Method prepares all product's data to be properly displayed."""
 
-    product = ProductModel.query.get(product_id)
+    product_entity = ProductModel.query.get(product_id)
 
     upload_path = GlobalSettingModelRepository.get('uploads_path')
 
-    product_images = get_image_paths(product.img_names, upload_path)
-    product.characteristics = json_load(product.characteristics)
+    product_images = get_image_paths(product_entity.img_names, upload_path)
+    product_entity.characteristics = json_load(product_entity.characteristics)
 
     # get characteristics:
     characteristics = []
-    if product.characteristics:
-        characteristics = get_characteristics_with_names(product.characteristics)
+    if product_entity.characteristics:
+        characteristics = get_characteristics_with_names(product_entity.characteristics)
 
     # find a normal name for a category using a short name
-    category = Category.CategoryModel.query.filter(Category.CategoryModel.short_name == product.category).first()
+    category = Category.CategoryModel.query.filter(Category.CategoryModel.short_name == product_entity.category).first()
 
     data_dict = {'characteristics': characteristics, 'product_images': product_images, 'category': category.name}
 
     if admin_logged():
         data_dict['admin_info'] = {}
-        data_dict['admin_info']['product_id'] = product.id
-        data_dict['admin_info']['creation_date'] = product.creation_date
-        data_dict['admin_info']['last_edited'] = product.last_edited
+        data_dict['admin_info']['product_id'] = product_entity.id
+        data_dict['admin_info']['creation_date'] = product_entity.creation_date
+        data_dict['admin_info']['last_edited'] = product_entity.last_edited
 
-    return render_template('products/view_product.html', d=data_dict, product=product)
+    if admin_logged():
+        data_dict['add_to_cart_possible'] = False
+
+    return render_template('products/view_product.html', d=data_dict, product=product_entity)
 
 
 def get_image_paths(img_names, upload_path):
@@ -154,35 +184,35 @@ def edit(product_id):
     # Take only fields needed
     form = EditProductForm()
 
-    product = ProductModel.query.get(product_id)
+    product_entity = ProductModel.query.get(product_id)
 
     # insert existing product's data
-    form = insert_data_into_form(product, form, ('submit', 'csrf_token', 'product_id'))
+    form = insert_data_into_form(product_entity, form, ('submit', 'csrf_token', 'product_id'))
 
     # available choices are set before inserting data to this field
     # set available categories
-    categories = Category.CategoryModel.query.all()
-    form.category.choices = [(c.short_name, c.name) for c in categories]
+    category_entities = Category.CategoryModel.query.all()
+    form.category.choices = [(c.short_name, c.name) for c in category_entities]
 
     # insert product's ID into a hidden field
     form.product_id.data = product_id
 
-    product.characteristics = json_load(product.characteristics)
+    product_entity.characteristics = json_load(product_entity.characteristics)
 
     # get characteristics:
     characteristics = []
-    if product.characteristics:
-        characteristics = get_characteristics_with_names(product.characteristics)
+    if product_entity.characteristics:
+        characteristics = get_characteristics_with_names(product_entity.characteristics)
 
     # find a normal name for a category using a short name
-    category = Category.CategoryModel.query.filter(Category.CategoryModel.short_name == product.category).first()
+    category = Category.CategoryModel.query.filter(Category.CategoryModel.short_name == product_entity.category).first()
 
     data_dict = {'characteristics': characteristics, 'category': category.name}
 
-    return render_template('products/edit_product.html', d=data_dict, product=product, form=form)
+    return render_template('products/edit_product.html', d=data_dict, product=product_entity, form=form)
 
 
-@products.route('/validate_edit/', methods=['POST'])
+@products.route('/edit/', methods=['POST'])
 @admin_only
 def validate_edit():
     """
@@ -224,7 +254,7 @@ def validate_edit():
 
             extra_data = {'characteristics': characteristics_fields, 'last_edited': date_time, 'img_names': img_names}
 
-            entity = update_entity(product_entity, data, extra_data)
+            update_entity(product_entity, data, extra_data)
 
             db.session.commit()
 
@@ -232,6 +262,17 @@ def validate_edit():
             return {"message": str(e)}
 
         return redirect(url_for('admin_panel.index'))
+
+
+def save_images(images, upload_path):
+    img_names = []
+    for file in images:
+        # save all files. each file gets a random name
+        filename = str(uuid4()) + '.' + file.mimetype.split('/')[1]
+        file.save(os.path.join(upload_path, filename))
+        img_names.append(filename)
+
+    return img_names
 
 
 def no_images(img_files):
@@ -281,8 +322,11 @@ def get_characteristics_with_names(characteristics):
 
     # go through all ids and replace id with a characteristic's name. This may not be an optimal approach
     # (too much requests to the DB)
+    print(characteristics)
     for list_item in characteristics_list:
-        entity = CharacteristicModel.query.get(list_item[0])
+        charc_id = list_item[0]
+        print(list_item)
+        entity = CharacteristicModel.query.get(charc_id)
         list_item[0] = entity.name
 
     return characteristics_list
@@ -307,15 +351,14 @@ def add_to_cart(product_id):
     return redirect(request.referrer)
 
 
-@products.route('/delete/<product_id>/', methods=['GET'])
+@products.route('/delete/<int:product_id>/', methods=['GET'])
 @admin_only
 def delete(product_id):
 
-    entity = ProductModel.query.get(product_id)
-    db.session.delete(entity)
+    product_entity = ProductModel.query.get(product_id)
+    db.session.delete(product_entity)
     db.session.commit()
 
     return redirect(url_for('admin_panel.index'))
-
 
 

@@ -1,6 +1,7 @@
 import hashlib
 from flask import session
 from flask_wtf import FlaskForm
+from products.models.Product import ProductModel
 import json
 
 
@@ -84,5 +85,9 @@ def insert_data_into_form(entity, form, exclude=()) -> FlaskForm:
         form_fields[name].data = entity_data[name]
 
     return form
+
+
+def whoosh_index_models(app):
+    wa.whoosh_index(app, ProductModel)
 
 

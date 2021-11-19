@@ -34,11 +34,11 @@ def create():
 def edit(shipment_method_id):
     form = EditShipmentMethodForm()
 
-    existing_shipment_method = ShipmentMethodModel.query.get(shipment_method_id)
+    shipment_method_entity = ShipmentMethodModel.query.get(shipment_method_id)
 
-    form.cost.data = existing_shipment_method.cost
-    form.estimated_time.data = existing_shipment_method.estimated_time
-    form.name.data = existing_shipment_method.name
+    form.cost.data = shipment_method_entity.cost
+    form.estimated_time.data = shipment_method_entity.estimated_time
+    form.name.data = shipment_method_entity.name
     form.shipment_method_id.data = shipment_method_id
 
     return render_template('shipment/edit_shipment_method.html', form=form, shipment_method_id=shipment_method_id)
@@ -55,10 +55,10 @@ def validate_edit():
     if form.validate_on_submit():
 
         try:
-            existing_shipment_method = ShipmentMethodModel.query.get(data['shipment_method_id'])
-            existing_shipment_method.cost = data['cost']
-            existing_shipment_method.estimated_time = data['estimated_time']
-            existing_shipment_method.name = data['name']
+            shipment_method_entity = ShipmentMethodModel.query.get(data['shipment_method_id'])
+            shipment_method_entity.cost = data['cost']
+            shipment_method_entity.estimated_time = data['estimated_time']
+            shipment_method_entity.name = data['name']
 
             db.session.commit()
 
@@ -70,9 +70,9 @@ def validate_edit():
 @shipment.route('/delete/<shipment_method_id>/', methods=['GET'])
 @admin_only
 def delete(shipment_method_id):
-    entity = ShipmentMethodModel.query.get(shipment_method_id)
+    shipment_method_entity = ShipmentMethodModel.query.get(shipment_method_id)
 
-    db.session.delete(entity)
+    db.session.delete(shipment_method_entity)
     db.session.commit()
 
     return redirect(url_for('admin_panel.list_shipment_methods'))

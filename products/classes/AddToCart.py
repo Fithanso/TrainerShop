@@ -33,10 +33,10 @@ class AddToCart:
 class AddToCustomer(Strategy):
     def add_product(self, product_id):
         customer_id = session.get('customer')['customer_id']
-        customer = CustomerModel.query.get(customer_id)
+        customer_entity = CustomerModel.query.get(customer_id)
 
-        if customer.active_cart is not None:
-            cart_products = json.loads(customer.active_cart)
+        if customer_entity.active_cart is not None:
+            cart_products = json.loads(customer_entity.active_cart)
         else:
             cart_products = {}
 
@@ -45,7 +45,7 @@ class AddToCustomer(Strategy):
         else:
             cart_products[product_id] = 1
 
-        customer.active_cart = json.dumps(cart_products)
+        customer_entity.active_cart = json.dumps(cart_products)
         db.session.commit()
 
 

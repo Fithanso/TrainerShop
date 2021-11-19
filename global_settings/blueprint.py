@@ -34,10 +34,10 @@ def create():
 def edit(global_setting_id):
     form = EditGlobalSettingForm()
 
-    existing_global_setting = GlobalSettingModel.query.get(global_setting_id)
+    global_setting_entity = GlobalSettingModel.query.get(global_setting_id)
 
-    form.name.data = existing_global_setting.name
-    form.value.data = existing_global_setting.value
+    form.name.data = global_setting_entity.name
+    form.value.data = global_setting_entity.value
     form.global_setting_id.data = global_setting_id
 
     return render_template('global_settings/edit_global_setting.html', form=form, global_setting_id=global_setting_id)
@@ -54,9 +54,9 @@ def validate_edit():
     if form.validate_on_submit():
 
         try:
-            existing_global_setting = GlobalSettingModel.query.get(data['global_setting_id'])
-            existing_global_setting.name = data['name']
-            existing_global_setting.value = data['value']
+            global_setting_entity = GlobalSettingModel.query.get(data['global_setting_id'])
+            global_setting_entity.name = data['name']
+            global_setting_entity.value = data['value']
 
             db.session.commit()
 
@@ -68,9 +68,9 @@ def validate_edit():
 @global_settings.route('/delete/<global_setting_id>/', methods=['GET'])
 @admin_only
 def delete(global_setting_id):
-    entity = GlobalSettingModel.query.get(global_setting_id)
+    global_setting_entity = GlobalSettingModel.query.get(global_setting_id)
 
-    db.session.delete(entity)
+    db.session.delete(global_setting_entity)
     db.session.commit()
 
     return redirect(url_for('admin_panel.list_global_settings'))

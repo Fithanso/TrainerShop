@@ -17,8 +17,9 @@ class CreateProductForm(FlaskForm):
     pieces_left = IntegerField('Pieces left', validators=[DataRequired()])
     # I used my own class because I get "Not a valid choice" error every time
     category = NonValidatingSelectField('Category')
-    box_dimensions = StringField('Box dimensions', validators=[DataRequired()], render_kw={"placeholder": "mm."})
-    weight = IntegerField('Weight', validators=[DataRequired()], render_kw={"placeholder": "grams"})
+    box_dimensions = StringField('Box dimensions', validators=[DataRequired()],
+                                 render_kw={"placeholder": "Length*width*height (mm.)"})
+    weight = IntegerField('Box weight', validators=[DataRequired()], render_kw={"placeholder": "grams"})
     img_names = MultipleFileField('Select images', validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Images only!')])
     submit = SubmitField('Create')
 
