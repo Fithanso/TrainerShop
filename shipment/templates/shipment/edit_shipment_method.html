@@ -13,7 +13,7 @@ Admin Panel
 <h4>If a setting means to be of boolean type, then write True or False in a value field.</h4>
 
 {% for field, errors in form.errors.items() %}
-    <small class="form-upper-error">
+    <small class="error-message">
         {{ ' '.join(errors) }}
     </small>
 {% endfor %}
@@ -25,7 +25,7 @@ Admin Panel
         <div class="form-group">
             <p>{{ field.label() }}</p>
             <p>
-                {{ field }}
+                {{ field(class="form-control) }}
                 {% for error in field.errors %}
                     {{ error }}
                 {% endfor %}

@@ -1,5 +1,8 @@
-from app import db, SMALLINT_LEN, SMALLINT_MAX
+from application import db
 from classes.abstract import Repository
+
+from constants import SMALLINT_LEN, SMALLINT_MAX
+
 import random
 
 
@@ -17,7 +20,7 @@ class ShipmentMethodModel(db.Model):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"<Product {self.name}>"
+        return f"<Product {self.__dict__}>"
 
 
 class ShipmentMethodModelRepository(Repository):

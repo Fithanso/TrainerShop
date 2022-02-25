@@ -1,8 +1,9 @@
-from app import ALLOWED_EXTENSIONS
-from wtforms import StringField, IntegerField, SelectField, SubmitField, MultipleFileField, HiddenField
+from wtforms import StringField, IntegerField, SelectField, SubmitField, MultipleFileField, HiddenField, DecimalField
 from wtforms.validators import DataRequired, Length
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
+
+from constants import ALLOWED_EXTENSIONS
 
 
 class NonValidatingSelectField(SelectField):
@@ -13,7 +14,7 @@ class NonValidatingSelectField(SelectField):
 class CreateProductForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     description = StringField('Description', validators=[DataRequired()])
-    price = IntegerField('Price', validators=[DataRequired()], render_kw={"placeholder": "$"})
+    price = DecimalField('Price', validators=[DataRequired()])
     pieces_left = IntegerField('Pieces left', validators=[DataRequired()])
     # I used my own class because I get "Not a valid choice" error every time
     category = NonValidatingSelectField('Category')
@@ -27,7 +28,7 @@ class CreateProductForm(FlaskForm):
 class EditProductForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     description = StringField('Description', validators=[DataRequired()])
-    price = IntegerField('Price', validators=[DataRequired()], render_kw={"placeholder": "$"})
+    price = DecimalField('Price', validators=[DataRequired()])
     pieces_left = IntegerField('Pieces left', validators=[DataRequired()])
     # I used my own class because I get "Not a valid choice" error every time
     category = NonValidatingSelectField('Category')

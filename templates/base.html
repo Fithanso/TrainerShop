@@ -25,6 +25,9 @@
             <a class="nav-link active" aria-current="page" href="{{ url_for(link) }}">{{label}}</a>
           </li>
           {% endfor %}
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="https://github.com/Fithanso/TrainerShop">Github</a>
+          </li>
       </ul>
       <form class="d-flex" method="get" action="{{ url_for('products.search') }}">
         <input class="form-control me-2" name="search_product" type="search" placeholder="Search product" aria-label="Search product">

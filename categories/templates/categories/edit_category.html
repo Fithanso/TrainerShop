@@ -12,20 +12,30 @@ Admin Panel
 {% block content %}
 
 <h4>Format characteristics like this: name:type(boolean, integer, string), ...</h4>
+<h4>Misspelled items will not be added</h4>
 {% for field, errors in form.errors.items() %}
-    <small class="form-upper-error">
+    <small class="error-message">
         {{ ' '.join(errors) }}
     </small>
 {% endfor %}
 <form action="{{ url_for('categories.validate_edit') }}" method="POST">
   <div class="col-md-6">
+        {{ form.hidden_tag() }}
+        {% for field in form if field.name not in ["csrf_token", "submit", "category_id"]%}
 
-    {{form.hidden_tag()}}
-    <div class="form-group">
-      {{ form.characteristics(class='form-control', rows=20)}}
-    </div>
-    <br>
-    {{ form.submit(class='btn btn-primary') }}
+        <div class="form-group">
+            <p>{{ field.label() }}</p>
+            <p>
+                {{ field(class="form-control") }}
+                {% for error in field.errors %}
+                    {{ error }}
+                {% endfor %}
+            </p>
+        </div>
+
+        {% endfor %}
+
+        {{ form.submit(class="btn btn-primary") }}
     <br>
   </div>
 </form>

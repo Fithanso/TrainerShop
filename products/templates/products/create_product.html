@@ -6,6 +6,9 @@ Admin Panel
 
 {% block page_title %}
 <h1>Add product</h1>
+<br><br>
+<h5>Product's price can have a maximum of 10 digits, and maximum of 4 in the fractional part. </h5>
+
 {% endblock %}
 
 
@@ -13,45 +16,26 @@ Admin Panel
 {% block content %}
 <div class="col-md-6">
   {% for field, errors in form.errors.items() %}
-    <small class="form-upper-error">
+    <small class="error-message">
         {{ ' '.join(errors) }}
     </small>
   {% endfor %}
 <form id="product-form" action="{{ url_for('products.validate_create') }}" method="POST" enctype="multipart/form-data">
-  {{ form.csrf_token() }}
-  <div class="form-group">
-      {{ form.name.label }}
-      {{ form.name(class="form-control", id="add_product_name") }}
-  </div>
-  <div class="form-group">
-      {{ form.description.label }}
-      {{ form.description(class="form-control", id="add_product_description") }}
-  </div>
-  <div class="form-group">
-      {{ form.price.label }}
-      {{ form.price(class="form-control", id="add_product_price") }}
-  </div>
-  <div class="form-group">
-      {{ form.pieces_left.label }}
-      {{ form.pieces_left(class="form-control", id="add_product_pieces_left") }}
-  </div>
-  <div class="form-group">
-      {{ form.category.label }}
-      {{ form.category(class="form-control", id="add_product_category") }}
-  </div>
-  <div class="form-group">
-      {{ form.box_dimensions.label }}
-      {{ form.box_dimensions(class="form-control", id="add_product_box_dimensions") }}
-  </div>
-  <div class="form-group">
-      {{ form.weight.label }}
-      {{ form.weight(class="form-control", id="add_product_weight") }}
-  </div>
-  <div class="form-group">
-      {{ form.img_names.label }}
-      {{ form.img_names(class="form-control", id="add_product_img_names") }}
-  </div>
+    {{ form.csrf_token() }}
 
+    {% for field in form if field.name not in ["csrf_token", "submit"]%}
+
+    <div class="form-group">
+        <p>{{ field.label() }}</p>
+        <p>
+            {{ field(class="form-control") }}
+            {% for error in field.errors %}
+                {{ error }}
+            {% endfor %}
+        </p>
+    </div>
+
+    {% endfor %}
   <br>
   {{ form.submit(class="btn btn-primary")}}
 

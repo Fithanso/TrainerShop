@@ -13,24 +13,28 @@ Admin Panel
 <h4>If a setting means to be of boolean type, then write True or False in a value field.</h4>
 
 {% for field, errors in form.errors.items() %}
-    <small class="form-upper-error">
+    <small class="error-message">
         {{ ' '.join(errors) }}
     </small>
 {% endfor %}
 <form action="{{ url_for('global_settings.validate_edit') }}" method="POST">
   <div class="col-md-6">
+      {{ form.hidden_tag() }}
+      {% for field in form if field.name not in ["csrf_token", "submit", "global_setting_id"]%}
 
-    {{form.hidden_tag()}}
-    <div class="form-group">
-      {{ form.name.label(class='control-label') }}
-      {{ form.name(class='form-control')}}
-    </div>
-    <div class="form-group">
-      {{ form.value.label(class='control-label') }}
-      {{ form.value(class='form-control')}}
-    </div>
-  <br>
-  {{ form.submit(class="btn btn-primary")}}
+      <div class="form-group">
+          <p>{{ field.label() }}</p>
+          <p>
+              {{ field(class="form-control") }}
+              {% for error in field.errors %}
+                  {{ error }}
+              {% endfor %}
+          </p>
+      </div>
+
+      {% endfor %}
+
+      {{ form.submit(class="btn btn-primary") }}
 
   </div>
 </form>
@@ -39,6 +43,7 @@ Admin Panel
 {% endblock %}
 
 {% block footer %}
+<br>
 <a href="{{ url_for('global_settings.delete', global_setting_id=global_setting_id) }}" class="btn btn-danger">
   Delete global setting
 </a>

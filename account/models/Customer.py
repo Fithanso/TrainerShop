@@ -1,7 +1,9 @@
-from app import db, BIGINT_LEN, BIGINT_MAX
-import time
-import random
+from application import db
 from classes.abstract import Repository
+
+from constants import BIGINT_LEN, BIGINT_MAX
+
+import random
 
 
 class CustomerModel(db.Model):
@@ -26,7 +28,7 @@ class CustomerModel(db.Model):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"<Customer {self.email}>"
+        return f"<Customer {self.__dict__}>"
 
 
 class CustomerModelRepository(Repository):

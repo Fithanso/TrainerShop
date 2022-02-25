@@ -1,6 +1,11 @@
-from app import db, INT_LEN, INT_MAX
-import random
+from application import db
+
 from classes.abstract import Repository
+
+from constants import INT_LEN, INT_MAX
+
+from sqlalchemy.orm import relationship
+import random
 
 
 class CategoryModel(db.Model):
@@ -11,12 +16,13 @@ class CategoryModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String())
     short_name = db.Column(db.String())
+    characteristics = relationship('CharacteristicModel', back_populates="category", cascade="all, delete")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"<Category {self.short_name}>"
+        return f"<Category {self.__dict__}>"
 
 
 class CategoryModelRepository(Repository):

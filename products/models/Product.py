@@ -1,6 +1,11 @@
-from app import db, BIGINT_MAX, BIGINT_LEN
+from application import db
 from classes.abstract import Repository
+
 from global_settings.models.GlobalSetting import GlobalSettingModelRepository
+
+from constants import BIGINT_MAX, BIGINT_LEN
+from helpers import to_int_if_fractional_zero
+
 import json
 import random
 import os
@@ -15,7 +20,7 @@ class ProductModel(db.Model):
     id = db.Column(db.BigInteger, primary_key=True)
     name = db.Column(db.String())
     description = db.Column(db.Text())
-    price = db.Column(db.Integer())
+    price = db.Column(db.Numeric(10, 4))
     pieces_left = db.Column(db.Integer())
     category = db.Column(db.String())
     characteristics = db.Column(db.Text())
@@ -29,7 +34,7 @@ class ProductModel(db.Model):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"<Product {self.name}>"
+        return f"<Product {self.__dict__}>"
 
 
 class ProductModelRepository(Repository):
@@ -64,9 +69,6 @@ class ProductModelRepository(Repository):
         """Method takes Product entities and makes them ready to be displayed. List of entities is splitted \
         into chunks, additional information about each is loaded"""
 
-        if not entities:
-            return None
-
         # split all products into chunks of certain length - n. It is needed to display them in rows of n elements
         products_list = [entities[i:i + chunks] for i in range(0, len(entities), chunks)]
 
@@ -80,11 +82,13 @@ class ProductModelRepository(Repository):
             if len(product.description) > max_chars:
                 description += '...'
 
+            setattr(product, 'description', description)
+
+            product.price = to_int_if_fractional_zero(product.price)
+
             if len(filenames) != 0:
                 # i add a system separator to make a path absolute,
                 # otherwise it'll search a 'static' folder inside products
                 setattr(product, 'icon_path', os.path.sep + os.path.join(upload_path, filenames[0]))
-
-            setattr(product, 'description', description)
 
         return products_list

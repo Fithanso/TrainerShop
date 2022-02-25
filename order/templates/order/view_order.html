@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Order info
+{% endblock %}
+
+{% block content_title %}
+<br>
+<h1> Order info: </h1>
+
+{% endblock %}
+
+{% block content %}
+<div class="container order-info-container">
+        <h3>ID: {{order['entity'].id}}</h3>
+        <br>
+        <p>Created: {{order['entity'].order_datetime}}</p>
+         {% for product in order['products'] %}
+                <p>
+                    <a class="product-link" href="{{url_for('products.view', product_id=product['product_id'])}}">
+                        {{product['product_name'] }}
+                    </a> : {{ product['quantity'] }}
+                </p>
+            {% endfor %}
+        <p>Total price: {{order['total_price']}}</p>
+        <br>
+        <p>Delivery address: {{order['entity'].delivery_address}}</p>
+        <br>
+        <p>Including shipment: {{order['shipment']}}</p>
+        <br>
+        {% if order['received'] %}
+                <p style="color: green">Received</p>
+            {% else %}
+                <p style="color: red">Not received</p>
+        {% endif %}
+</div>
+
+
+
+{% endblock %}
+
+

@@ -12,7 +12,7 @@ Admin Panel
 
 {% block content %}
 {% for field, errors in form.errors.items() %}
-  <small class="form-upper-error">
+  <small class="error-message">
       {{ ', '.join(errors) }}
   </small>
 {% endfor %}
@@ -24,7 +24,7 @@ Admin Panel
         <div class="form-group">
             <p>{{ field.label() }}</p>
             <p>
-                {{ field }}
+                {{ field(class="form-control") }}
                 {% for error in field.errors %}
                     {{ error }}
                 {% endfor %}

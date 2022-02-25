@@ -1,6 +1,5 @@
-from app import ALLOWED_EXTENSIONS
 from wtforms import StringField, IntegerField, SelectField, SubmitField, HiddenField
-from wtforms.validators import DataRequired, Length, optional
+from wtforms.validators import DataRequired, Length, Optional
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
 
@@ -13,7 +12,7 @@ class NonValidatingSelectField(SelectField):
 class CreateOrderForm(FlaskForm):
     name = StringField('Name of recipient', validators=[DataRequired()])
     surname = StringField('Surname of recipient', validators=[DataRequired()])
-    patronymic = StringField('Patronymic of recipient (if there is)', validators=[DataRequired()])
+    patronymic = StringField('Patronymic of recipient (if there is)', validators=[Optional()])
     delivery_address = StringField('Delivery address', validators=[DataRequired()])
     phone_number = StringField('Phone number of recipient', validators=[DataRequired()])
     email = StringField('Email of recipient', validators=[DataRequired()])
@@ -26,7 +25,7 @@ class CreateOrderForm(FlaskForm):
 
 
 class SearchOrderForm(FlaskForm):
-    order_id = IntegerField('Search by ID', validators=[optional()])
+    order_id = IntegerField('Search by ID', validators=[Optional()])
     customer_phone_number = StringField('Search by customer`s phone number (with `+`)')
     customer_name = StringField('Search by customer`s name (full name should be given)',
                                 render_kw={'placeholder': 'Name surname patronymic', 'style': 'width:400px'})

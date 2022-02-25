@@ -1,12 +1,17 @@
-from app import db, BIGINT_MAX, BIGINT_LEN
+from application import db
+from flask import url_for
+
 from classes.abstract import Repository
+
 from global_settings.models.GlobalSetting import GlobalSettingModelRepository
 from products.models.Product import ProductModel
 from shipment.models.ShipmentMethod import ShipmentMethodModel
+
+from constants import BIGINT_MAX, BIGINT_LEN
+
+from typing import List
 import json
 import random
-import os
-from typing import List
 
 
 class OrderModel(db.Model):
@@ -28,13 +33,14 @@ class OrderModel(db.Model):
     recipient_patronymic = db.Column(db.String())
     recipient_phone_number = db.Column(db.String())
     recipient_email = db.Column(db.String())
-    total_price = db.Column(db.Integer())
+    delivery_address = db.Column(db.String())
+    total_price = db.Column(db.Numeric(10, 4))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"<Order {self.id}>"
+        return f"<Order {self.__dict__}>"
 
 
 class OrderModelRepository(Repository):
@@ -65,61 +71,31 @@ class OrderModelRepository(Repository):
         return 0
 
     @staticmethod
-    def prepare_list(entities, chunks, max_chars):
-        """Method takes Product entities and makes them ready to be displayed. List of entities is splitted \
-        into chunks, additional information about each is loaded"""
-
-        # split all products into chunks of certain length - n. It is needed to display them in rows of n elements
-        products_list = [entities[i:i + chunks] for i in range(0, len(entities), chunks)]
-
-        upload_path = GlobalSettingModelRepository.get('uploads_path')
-
-        # prepare icons for all loaded products (1 per product), crop descriptions to max chars possible
-        for product in entities:
-            filenames = json.loads(product.img_names)
-            description = product.description[0:max_chars]
-
-            if len(product.description) > max_chars:
-                description += '...'
-
-            if len(filenames) != 0:
-                # i add a system separator to make a path absolute,
-                # otherwise it'll search a 'static' folder inside products
-                setattr(product, 'icon_path', os.path.sep + os.path.join(upload_path, filenames[0]))
-
-            setattr(product, 'description', description)
-
-        return products_list
-
-    @staticmethod
-    def get_orders_info(order_entities) -> List:
+    def get_orders_info_list(order_entities: List) -> List:
         """function iterates all order entities and extracts the information needed"""
         orders = []
+        main_currency_sign = GlobalSettingModelRepository.get('main_currency_sign')
 
         # go through all orders and get information about them
         for order_entity in order_entities:
             purchased_products = json.loads(order_entity.purchased_products)
 
-            products_rows = ''
+            products_rows = []
             for product_id, quantity in purchased_products.items():
                 product_entity = ProductModel.query.get(int(product_id))
 
-                product_row = product_entity.name + ': ' + str(quantity) + '<br>'
+                product_row = {'product_id': product_id, 'product_name': product_entity.name, 'quantity': quantity}
+                products_rows.append(product_row)
 
-                products_rows += product_row
+            shipment_method = ShipmentMethodModel.query.get(order_entity.shipment_method)
 
-                if not order_entity.received:
-                    received = '<p style="color: red">Not received</p>'
-                else:
-                    received = '<p style="color: green">Received</p>'
-
-            shipment_method_entity = ShipmentMethodModel.query.get(order_entity.shipment_method)
-            s = shipment_method_entity
-            shipment = s.name + ': ' + str(s.cost) + '$'
-
+            shipment = 'No info'
+            if shipment_method:
+                shipment = shipment_method.name + ': ' + str(shipment_method.cost) + ' ' + main_currency_sign
+            print(order_entity)
             order_dict = {'entity': order_entity, 'products': products_rows,
-                          'total_price': str(order_entity.total_price) + ' $',
-                          'received': received, 'shipment': shipment}
+                          'total_price': str(order_entity.total_price) + ' ' + main_currency_sign,
+                          'received': order_entity.received, 'shipment': shipment}
 
             orders.append(order_dict)
 

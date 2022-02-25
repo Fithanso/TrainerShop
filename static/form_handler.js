@@ -1,6 +1,6 @@
-category_select = document.getElementById("add_product_category")
+category_select = document.querySelector('select#category')
 
-edit_category_select = document.getElementById("edit_product_category")
+edit_category_select = document.querySelector('select#category')
 
 if (category_select != null) {
     selector = category_select

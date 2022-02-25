@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}
+CSRF Error
+{% endblock %}
+
+
+{% block content %}
+<div class="container error-page-container">
+    <img src="{{url_for('static', filename='/system/puck_stands.png')}}">
+    <br><br>
+    <h1 class="error-code">404</h1>
+    <br><br>
+    <h1>You are not allowed to be here!</h1>
+    <h2>{{reason}}</h2>
+
+</div>
+{% endblock %}

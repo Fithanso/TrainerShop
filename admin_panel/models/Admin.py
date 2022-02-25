@@ -1,4 +1,4 @@
-from app import db
+from application import db
 from classes.abstract import Repository
 
 
@@ -18,7 +18,7 @@ class AdminModel(db.Model):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"<Admin {self.email}>"
+        return f"<Admin {self.__dict__}>"
 
 
 class AdminModelRepository(Repository):

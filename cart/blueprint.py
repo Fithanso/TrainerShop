@@ -1,13 +1,18 @@
-from app import *
-from flask import Blueprint, render_template, request, redirect, url_for
+from application import *
+from flask import *
+
+from cart.classes.DeleteInCart import *
+from cart.classes.ChangeQuantityInCart import ChangeQuantityInCart
+from cart.classes.QuantityManager import QuantityManager
+from cart.classes.CartValidator import CartValidator
+from cart.classes.AddToCartManager import AddToCartManager
+from cart.funcs import *
+
 from products.models.Product import *
-from decorators import unavailable_for_admin
-from functions import customer_logged
 from global_settings.models.GlobalSetting import *
-from cart.classes.GetCartProducts import GetCartProducts, GetCartFromCustomer, GetCartFromSession
-from cart.classes.ChangeQuantityInCart import ChangeQuantityInCart, IncreaseInCustomer, IncreaseInSession, \
-    DecreaseInCustomer, DecreaseInSession
-from cart.classes.DeleteInCart import DeleteInCart, DeleteInCustomer, DeleteInSession
+
+from decorators import unavailable_for_admin
+from helpers import customer_logged, to_int_if_fractional_zero
 
 cart = Blueprint('cart', __name__, template_folder='templates')
 
@@ -15,72 +20,103 @@ cart = Blueprint('cart', __name__, template_folder='templates')
 @cart.route('/', methods=['GET'])
 @unavailable_for_admin
 def index():
-    if customer_logged():
-        strategy = GetCartFromCustomer()
-    else:
-        strategy = GetCartFromSession()
 
-    products_getter = GetCartProducts(strategy)
-    products_quantity = products_getter.get_products()
+    products_quantities = get_products_quantities_dict()
+
+    main_currency_sign = GlobalSettingModelRepository.get('main_currency_sign')
 
     product_rows = []
     total_price = 0
 
-    if products_quantity:
-        for product_id, quantity in products_quantity.items():
-            product_entity = ProductModel.query.get(int(product_id))
-            if product_entity:
-                product_rows.append({'product': product_entity, 'quantity': quantity,
-                                     'row_price': product_entity.price * quantity})
+    if products_quantities:
 
-                total_price += product_entity.price * quantity
-            else:
-                # Product may be already deleted
+        for product_id, quantity in products_quantities.items():
+            product_entity = ProductModel.query.get(int(product_id))
+
+            if not product_entity:
+                # If product in cart is deleted
                 return redirect(url_for('cart.delete_product', product_id=product_id))
 
-    return render_template('cart/cart.html', product_rows=product_rows, total_price=total_price)
+            product_price = to_int_if_fractional_zero(product_entity.price)
+
+            if int(quantity) > int(product_entity.pieces_left):
+                quantity = product_entity.pieces_left
+                flash('The number of some added products has been reduced', category='warning')
+
+            product_row_dict = {'product': product_entity, 'quantity': quantity,
+                                'row_price':  product_price * quantity}
+
+            product_rows.append(product_row_dict)
+
+            total_price += product_price * quantity
+
+    return render_template('cart/cart.html', product_rows=product_rows,
+                           total_price=total_price, main_currency_sign=main_currency_sign)
 
 
-@cart.route('/increase-product-quantity/<product_id>', methods=['GET'])
-@unavailable_for_admin
-def increase_product_quantity(product_id):
-    """Operations of increase and decrease and strategies are separated because of a potential business logic inside"""
+@cart.route('/add-to-cart/<string:product_id>/', methods=['GET'])
+def add_to_cart(product_id):
+    cart_validator = CartValidator()
+    add_manager = AddToCartManager(product_id)
 
     if customer_logged():
-        strategy = IncreaseInCustomer()
-    else:
-        strategy = IncreaseInSession()
+        if not cart_validator.validate_logged_customers_cart():
+            return redirect(url_for('cart.index'))
 
-    quantity_changer = ChangeQuantityInCart(strategy)
-    quantity_changer.change_quantity(product_id)
+    status = add_manager.add_product_return_status()
 
-    return redirect(url_for('cart.index'))
+    if status == AddToCartManager.PRODUCT_ALREADY_IN_CART:
+        return redirect(url_for('cart.increase_product_quantity', product_id=product_id))
+
+    # redirect back to product's page
+    return redirect(request.referrer)
 
 
-@cart.route('/decrease-product-quantity/<product_id>', methods=['GET'])
+@cart.route('/increase-product-quantity/<string:product_id>', methods=['GET'])
+@unavailable_for_admin
+def increase_product_quantity(product_id):
+    cart_validator = CartValidator()
+
+    if not cart_validator.validate_cart_with_product(product_id):
+        return redirect(url_for('cart.index'))
+
+    quantity_manager = QuantityManager(ChangeQuantityInCart.INCREASE, product_id)
+
+    status = quantity_manager.change_quantity_return_status()
+
+    if status == QuantityManager.QUANTITY_EXCEEDS_PIECES_LEFT:
+        flash('Not enough product in stock', category='warning')
+
+    return redirect(request.referrer)
+
+
+@cart.route('/decrease-product-quantity/<string:product_id>', methods=['GET'])
 @unavailable_for_admin
 def decrease_product_quantity(product_id):
 
-    if customer_logged():
-        strategy = DecreaseInCustomer()
-    else:
-        strategy = DecreaseInSession()
+    cart_validator = CartValidator()
 
-    quantity_changer = ChangeQuantityInCart(strategy)
-    new_quantity = quantity_changer.change_quantity(product_id)
+    if not cart_validator.validate_cart_with_product(product_id):
+        return redirect(url_for('cart.index'))
 
-    if new_quantity == 0:
+    quantity_manager = QuantityManager(ChangeQuantityInCart.DECREASE, product_id)
+
+    status = quantity_manager.change_quantity_return_status()
+
+    if status == QuantityManager.QUANTITY_IS_NULL:
         return redirect(url_for('cart.delete_product', product_id=product_id))
 
-    return redirect(url_for('cart.index'))
+    return redirect(request.referrer)
 
 
-@cart.route('/delete-product/<product_id>', methods=['GET'])
+@cart.route('/delete-product/<string:product_id>', methods=['GET'])
 @unavailable_for_admin
 def delete_product(product_id):
-
     if customer_logged():
-        strategy = DeleteInCustomer()
+        customer_entity = get_logged_in_customer()
+        if customer_entity.active_cart is None:
+            return redirect(url_for('cart.index'))
+        strategy = DeleteInCustomer(customer_entity)
     else:
         strategy = DeleteInSession()
 
@@ -88,5 +124,3 @@ def delete_product(product_id):
     product_deleter.delete_product(product_id)
 
     return redirect(url_for('cart.index'))
-
-

@@ -1,8 +1,11 @@
 from flask import session
-from app import db
-from abc import ABC, abstractmethod
+from application import db
+
 from account.models.Customer import CustomerModel
-from functions import set_session_vars
+
+from helpers import set_session_vars
+
+from abc import ABC, abstractmethod
 import json
 
 
@@ -26,21 +29,24 @@ class DeleteInCart:
     def strategy(self, strategy: Strategy) -> None:
         self._strategy = strategy
 
-    def delete_product(self, product_id) -> None:
+    def delete_product(self, product_id: str) -> None:
         return self._strategy.delete_product(product_id)
 
 
 class DeleteInCustomer(Strategy):
+
+    def __init__(self, customer_entity):
+        super().__init__()
+        self.customer_entity = customer_entity
+
     def delete_product(self, product_id):
-        customer_id = session.get('customer')['customer_id']
-        customer_entity = CustomerModel.query.get(customer_id)
 
         # condition may be pointless, but I'll leave it anyway, in case the direct request is sent
-        if customer_entity.active_cart is not None:
-            cart_products = json.loads(customer_entity.active_cart)
+        if self.customer_entity.active_cart is not None:
+            cart_products = json.loads(self.customer_entity.active_cart)
 
             cart_products.pop(product_id, None)
-            customer_entity.active_cart = json.dumps(cart_products)
+            self.customer_entity.active_cart = json.dumps(cart_products)
 
             db.session.commit()
 

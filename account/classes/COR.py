@@ -1,9 +1,13 @@
 from flask import redirect, url_for
-from typing import Any
 from classes.abstract import AbstractHandler
+
 from account.models.Customer import CustomerModel
+
 from admin_panel.models.Admin import AdminModel
-from functions import *
+
+from helpers import *
+
+from typing import Any
 
 
 class CustomerLoginHandler(AbstractHandler):
@@ -16,7 +20,7 @@ class CustomerLoginHandler(AbstractHandler):
                 set_session_vars(customer={'customer_id': customer.id})
                 # active cart now means nothing since a customer is already logged in
                 del_session_vars('active_cart')
-                return redirect(url_for('products.list'))
+                return redirect(url_for('index'))
             else:
                 return False
         else:

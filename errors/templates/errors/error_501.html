@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Error 403
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+    <img src="{{url_for('static', filename='/system/puck_stands.png')}}">
+    <br><br>
+    <h1 class="error-code">501</h1>
+    <br><br>
+    <h1>Internal server error</h1>
+    <h2>Our team of elf workers is already solving the problem</h2>
+</div>
+{% endblock %}

@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-<a href="{{ url_for('categories.view', category_name=d['category']) }}">{{'Categories >> ' ~ d['category']}}</a>
+<a href="{{ url_for('categories.view', category_short_name=d['category']) }}">{{'Categories >> ' ~ d['category']}}</a>
 {% endblock %}
 
 {% block upper_content %}
@@ -58,12 +58,12 @@
     <div class="row" id="product-price-container">
 
         <div class="col-sm-2" id="product-price-block">
-            <p>{{product.price ~ '$'}}</p>
+            <p>{{product.price}} {{ main_currency_sign }}</p>
         </div>
 
         {% if d['add_to_cart_possible'] != False %}
         <div class="col-sm-2" id="product-addtocart-block">
-            <a href="{{url_for('products.add_to_cart', product_id=product.id)}}"><button class="btn btn-primary">Add to cart</button></a>
+            <a href="{{url_for('cart.add_to_cart', product_id=product.id)}}"><button class="btn btn-primary">Add to cart</button></a>
         </div>
         {% endif %}
         <div class="col-sm-8"></div>

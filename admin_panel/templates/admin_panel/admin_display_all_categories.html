@@ -1,0 +1,39 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}
+Admin Panel
+{% endblock %}
+
+{% block page_title %}
+
+    {% for category, msg in get_flashed_messages(with_categories=True) %}
+        <br>
+        <div class="flash {{category}}">{{ msg }}</div>
+        <br>
+    {% endfor %}
+
+
+    <h1>Categories</h1>
+    <h3>Here you can create or delete special characteristics for each category</h3>
+{% endblock %}
+
+
+{% block upper_panel %}
+    <div class="admin-button">
+        <a aria-current="page" href="{{url_for('categories.create')}}">Create category</a>
+    </div>
+{% endblock %}
+
+
+{% block content %}
+    <br>
+    <p>{{d['message']}}</p>
+    <div class="list-group" id="categories-list">
+        {% for category in d['categories'] %}
+        <a href="{{url_for('categories.edit', category_id=category.id)}}" class="list-group-item">
+            {{category.name}}
+        </a>
+        {% endfor %}
+    </div>
+    <br><br>
+{% endblock %}

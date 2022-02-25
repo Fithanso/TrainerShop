@@ -7,7 +7,7 @@ a {
     color: black;
 }
 
-.form-upper-error {
+.error-message {
     color: #D83434;
 }
 
@@ -38,8 +38,31 @@ div.admin-button {
     width: 150px;
     height: 30px;
     background-color: cyan;
-    border-radius: 15px;
+    border-radius: 10px;
     text: white;
 
+}
+
+/*Flask flash messages*/
+.flash {
+    padding: 10px;
+    border-radius: 5px;
+    color: #dedede;
+    display: inline-block;
+}
+
+.flash.success {
+    border: 1px solid #37784d;
+    background: #579c6e;
+}
+
+.flash.warning {
+    border: 1px solid #874a1e;
+    background: #ba7b4e;
+}
+
+.flash.error {
+    border: 1px solid #782a2a;
+    background: #9e3e3e;
 }
 

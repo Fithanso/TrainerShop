@@ -1,4 +1,4 @@
-from app import app
+from application import application
 import view
 from products.blueprint import products
 from account.blueprint import account
@@ -10,19 +10,21 @@ from order.blueprint import order
 from shipment.blueprint import shipment
 from errors.blueprint import errors
 
-app.register_blueprint(products, url_prefix='/products/')
-app.register_blueprint(categories, url_prefix='/categories/')
-app.register_blueprint(account, url_prefix='/account/')
-app.register_blueprint(admin_panel, url_prefix='/admin/')
-app.register_blueprint(global_settings, url_prefix='/global_settings/')
-app.register_blueprint(cart, url_prefix='/cart/')
-app.register_blueprint(order, url_prefix='/order/')
-app.register_blueprint(shipment, url_prefix='/shipment/')
-app.register_blueprint(errors, url_prefix='/errors/')
+application.register_blueprint(products, url_prefix='/products/')
+application.register_blueprint(categories, url_prefix='/categories/')
+application.register_blueprint(account, url_prefix='/account/')
+application.register_blueprint(admin_panel, url_prefix='/admin/')
+application.register_blueprint(global_settings, url_prefix='/global_settings/')
+application.register_blueprint(cart, url_prefix='/cart/')
+application.register_blueprint(order, url_prefix='/order/')
+application.register_blueprint(shipment, url_prefix='/shipment/')
+application.register_blueprint(errors, url_prefix='/errors/')
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    application.run(debug=True)
+
+
 
 
 

@@ -1,8 +1,10 @@
 from flask import session
-from app import db
+from application import db
+
+from account.models.Customer import CustomerModel
+
 from abc import ABC, abstractmethod
 from typing import Dict
-from account.models.Customer import CustomerModel
 import json
 
 

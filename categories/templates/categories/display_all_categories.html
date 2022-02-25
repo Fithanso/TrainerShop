@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}
+All categories
+{% endblock %}
+
+{% block page_title %}
+<h1>Choose category</h1>
+{% endblock %}
+
+
+{% block content %}
+    <br>
+    <div class="list-group" id="categories-list">
+        {% for category in d['categories'] %}
+        <a href="{{url_for('categories.view', category_short_name=category.short_name)}}" class="list-group-item">
+            {{category.name}}
+        </a>
+        {% endfor %}
+    </div>
+{% endblock %}

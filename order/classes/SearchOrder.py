@@ -1,6 +1,9 @@
-from app import db
-from abc import ABC, abstractmethod
+from application import db
+
 from order.models.Order import OrderModel
+
+from abc import ABC, abstractmethod
+from sqlalchemy import desc
 
 
 class Strategy(ABC):
@@ -23,7 +26,11 @@ class OrderSearcher:
         self._strategy = strategy
 
     def search(self, search_query):
-        return self._strategy.search(search_query)
+        result = self._strategy.search(search_query)
+        if not isinstance(result, list):
+            result = [result]
+
+        return result
 
 
 class SearchById(Strategy):
@@ -34,7 +41,9 @@ class SearchById(Strategy):
 
 class SearchByPhoneNumber(Strategy):
     def search(self, search_query):
-        result_entities = OrderModel.query.filter(OrderModel.recipient_phone_number == search_query).all()
+        result_entities = OrderModel.query.filter(OrderModel.recipient_phone_number == search_query)
+        result_entities = result_entities.order_by(desc(OrderModel.order_datetime)).all()
+
         return result_entities
 
 
@@ -44,6 +53,7 @@ class SearchByName(Strategy):
         search_queries = ["%{}%".format(query) for query in splitted_query]
         result_entities = OrderModel.query.filter(OrderModel.recipient_name.ilike(search_queries[0]),
                                                   OrderModel.recipient_surname.ilike(search_queries[1]),
-                                                  OrderModel.recipient_patronymic.ilike(search_queries[2])).all()
+                                                  OrderModel.recipient_patronymic.ilike(search_queries[2]))
+        result_entities = result_entities.order_by(desc(OrderModel.order_datetime)).all()
 
         return result_entities

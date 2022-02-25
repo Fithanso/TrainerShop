@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}
+All products
+{% endblock %}
+
+
+{% block content %}
+    {% for category, msg in get_flashed_messages(with_categories=True) %}
+        <br>
+        <div class="flash {{category}}">{{ msg }}</div>
+        <br>
+    {% endfor %}
+{% if d['error_message'] %}
+    <br><br>
+    <p>{{d['error_message']}}</p>
+
+{% else %}
+    {% if d['products'] %}
+    {% for list in d['products']%}
+    <div class="row" id="products-list-block">
+        {% for product in list %}
+            <div class="card products-list-card">
+                <div class="card-top-img">
+                    <img src="{{ product.icon_path }}" alt="{{product.name}}">
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('products.view', product_id=product.id) }}" class="view-product-link">
+                        <h3 class="card-title">{{product.name}}</h3>
+                    </a>
+                    <p class="card-text">{{product.description}}</p>
+                    <p class="card-price-text">{{product.price ~ d['main_currency_sign']}}</p>
+                    {% if d['add_to_cart_possible'] != False %}
+                    <a href="{{url_for('cart.add_to_cart', product_id=product.id)}}">
+                        <button class="btn btn-primary">Add to cart</button>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+    {% else %}
+        <br><br><br><br>
+        <h1>{{ d['message'] }}</h1>
+    {% endif %}
+
+{% endif %}
+{% endblock %}

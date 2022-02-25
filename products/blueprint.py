@@ -1,27 +1,32 @@
+from flask import *
+
+from products.models.Product import *
+from products.forms import *
+
+from categories.models.Category import CategoryModel
+from models.Characteristic import CharacteristicModel
+from global_settings.models.GlobalSetting import *
+
+from helpers import admin_logged, customer_logged, load_json_until_type, update_entity
+from decorators import admin_only
+from constants import ALLOWED_EXTENSIONS
+
+from sqlalchemy import desc
+from datetime import datetime
 from werkzeug.utils import secure_filename
 from uuid import uuid4
 from typing import List
-from products.models.Product import *
-from functions import admin_logged, customer_logged, insert_data_into_form, json_load
-from decorators import admin_only
-from products.forms import *
-from products.classes.AddToCart import AddToCart, AddToSession, AddToCustomer
-from categories.models import Category
-from models.Characteristic import CharacteristicModel
-from global_settings.models.GlobalSetting import *
-from datetime import datetime
 import json
-from sqlalchemy import desc
 
 
 products = Blueprint('products', __name__, template_folder='templates')
 
 
 @products.route('/')
-def list():
-    product_entities = ProductModel.query.order_by(desc(ProductModel.creation_date)).all()
+def display_all():
 
-    products_list = prepare_for_display(product_entities)
+    product_entities = ProductModel.query.order_by(desc(ProductModel.creation_date)).all()
+    products_list = prepare_products_for_display(product_entities)
 
     data_dict = {'products': products_list}
 
@@ -31,7 +36,11 @@ def list():
     if admin_logged():
         data_dict['add_to_cart_possible'] = False
 
-    return render_template('products/list_products.html', d=data_dict)
+    main_currency_sign = GlobalSettingModelRepository.get('main_currency_sign')
+
+    data_dict['main_currency_sign'] = main_currency_sign
+
+    return render_template('products/display_all_products.html', d=data_dict)
 
 
 @products.route('/search/', methods=['GET'])
@@ -41,6 +50,10 @@ def search():
 
     data_dict = {}
 
+    main_currency_sign = GlobalSettingModelRepository.get('main_currency_sign')
+
+    data_dict['main_currency_sign'] = main_currency_sign
+
     if search_query.strip() == '':
         data_dict['error_message'] = 'Search query is empty'
     else:
@@ -49,12 +62,12 @@ def search():
         search_results = results_by_name + results_by_description
 
         if search_results:
-            products_list = prepare_for_display(search_results)
+            products_list = prepare_products_for_display(search_results)
             data_dict['products'] = products_list
         else:
             data_dict['error_message'] = 'No products found. Try another query'
 
-    return render_template('products/list_products.html', d=data_dict)
+    return render_template('products/display_all_products.html', d=data_dict)
 
 
 def search_by_field(field, search_query) -> List:
@@ -63,7 +76,7 @@ def search_by_field(field, search_query) -> List:
     return result_entities
 
 
-def prepare_for_display(entities) -> List:
+def prepare_products_for_display(entities) -> List:
     # get values of global settings
     chunks = int(GlobalSettingModelRepository.get('products_in_row'))
     max_chars = int(GlobalSettingModelRepository.get('max_chars_on_product_card'))
@@ -76,9 +89,11 @@ def prepare_for_display(entities) -> List:
 @admin_only
 def create():
     form = CreateProductForm()
+    main_currency_sign = GlobalSettingModelRepository.get('main_currency_sign')
 
-    category_entities = Category.CategoryModel.query.all()
+    category_entities = CategoryModel.query.all()
     form.category.choices = [(c.short_name, c.name) for c in category_entities]
+    form.price.render_kw = {"placeholder": main_currency_sign}
 
     return render_template('products/create_product.html', form=form)
 
@@ -97,9 +112,9 @@ def validate_create():
 
     if form.validate_on_submit():
 
-        data = request.values
+        form_data = request.values
         # go through all data to find additional info - values of characteristics
-        characteristics_fields = json.dumps(extract_characteristics(data))
+        characteristics_fields = json.dumps(extract_characteristics(form_data))
 
         images = request.files.getlist("img_names")
 
@@ -121,51 +136,59 @@ def validate_create():
             product_id = ProductModelRepository.create_id()
             date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-            new_product = ProductModel(id=product_id, name=data['name'], description=data['description'],
-                                       price=data['price'], pieces_left=data['pieces_left'],
-                                       category=data['category'], characteristics=characteristics_fields,
-                                       box_dimensions=data['box_dimensions'], weight=data['weight'],
+            new_product = ProductModel(id=product_id, name=form_data['name'], description=form_data['description'],
+                                       price=form_data['price'], pieces_left=form_data['pieces_left'],
+                                       category=form_data['category'], characteristics=characteristics_fields,
+                                       box_dimensions=form_data['box_dimensions'], weight=form_data['weight'],
                                        img_names=json.dumps(img_names), creation_date=date_time, last_edited=date_time)
             db.session.add(new_product)
             db.session.commit()
 
+            flash('Product created successfully', category='success')
+
         except Exception as e:
+            flash('Error occurred while creating a product', category='error')
             return {"message": str(e)}
 
-        return redirect(url_for('admin_panel.index'))
+        return redirect(url_for('products.display_all'))
 
 
 @products.route('/<int:product_id>/', methods=['GET'])
 def view(product_id):
     """Method prepares all product's data to be properly displayed."""
-
     product_entity = ProductModel.query.get(product_id)
 
+    if not product_entity:
+        abort(404)
+
     upload_path = GlobalSettingModelRepository.get('uploads_path')
+    main_currency_sign = GlobalSettingModelRepository.get('main_currency_sign')
 
     product_images = get_image_paths(product_entity.img_names, upload_path)
-    product_entity.characteristics = json_load(product_entity.characteristics)
 
-    # get characteristics:
-    characteristics = []
-    if product_entity.characteristics:
-        characteristics = get_characteristics_with_names(product_entity.characteristics)
+    products_characteristics = get_characteristics(product_entity)
 
     # find a normal name for a category using a short name
-    category = Category.CategoryModel.query.filter(Category.CategoryModel.short_name == product_entity.category).first()
+    category = CategoryModel.query.filter(CategoryModel.short_name == product_entity.category).first()
 
-    data_dict = {'characteristics': characteristics, 'product_images': product_images, 'category': category.name}
-
-    if admin_logged():
-        data_dict['admin_info'] = {}
-        data_dict['admin_info']['product_id'] = product_entity.id
-        data_dict['admin_info']['creation_date'] = product_entity.creation_date
-        data_dict['admin_info']['last_edited'] = product_entity.last_edited
+    data_dict = {'characteristics': products_characteristics, 'product_images': product_images,
+                 'category': category.short_name}
 
     if admin_logged():
+        add_admin_info_into_dict(data_dict, product_entity)
         data_dict['add_to_cart_possible'] = False
 
-    return render_template('products/view_product.html', d=data_dict, product=product_entity)
+    return render_template('products/view_product.html', d=data_dict, product=product_entity,
+                           main_currency_sign=main_currency_sign)
+
+
+def add_admin_info_into_dict(data_dict, product_entity):
+    data_dict['admin_info'] = {}
+    data_dict['admin_info']['product_id'] = product_entity.id
+    data_dict['admin_info']['creation_date'] = product_entity.creation_date
+    data_dict['admin_info']['last_edited'] = product_entity.last_edited
+
+    return data_dict
 
 
 def get_image_paths(img_names, upload_path):
@@ -177,39 +200,45 @@ def get_image_paths(img_names, upload_path):
     return filenames
 
 
-@products.route('/edit/<product_id>/', methods=['GET'])
+@products.route('/edit/<int:product_id>/', methods=['GET'])
 @admin_only
 def edit(product_id):
 
-    # Take only fields needed
-    form = EditProductForm()
-
     product_entity = ProductModel.query.get(product_id)
 
-    # insert existing product's data
-    form = insert_data_into_form(product_entity, form, ('submit', 'csrf_token', 'product_id'))
+    form = EditProductForm(data=product_entity.__dict__)
 
     # available choices are set before inserting data to this field
     # set available categories
-    category_entities = Category.CategoryModel.query.all()
+    category_entities = CategoryModel.query.all()
     form.category.choices = [(c.short_name, c.name) for c in category_entities]
 
     # insert product's ID into a hidden field
     form.product_id.data = product_id
 
-    product_entity.characteristics = json_load(product_entity.characteristics)
+    # set a placeholder for currency
+    main_currency_sign = GlobalSettingModelRepository.get('main_currency_sign')
+    form.price.render_kw = {"placeholder": main_currency_sign}
 
-    # get characteristics:
+    # get names of a product's characteristics:
+    products_characteristics = get_characteristics(product_entity)
+
+    # find a normal name for a category using a short name
+    category = CategoryModel.query.filter(CategoryModel.short_name == product_entity.category).first()
+
+    data_dict = {'characteristics': products_characteristics, 'category': category.name}
+
+    return render_template('products/edit_product.html', d=data_dict, product=product_entity, form=form)
+
+
+def get_characteristics(product_entity):
+    product_entity.characteristics = load_json_until_type(product_entity.characteristics)
+
     characteristics = []
     if product_entity.characteristics:
         characteristics = get_characteristics_with_names(product_entity.characteristics)
 
-    # find a normal name for a category using a short name
-    category = Category.CategoryModel.query.filter(Category.CategoryModel.short_name == product_entity.category).first()
-
-    data_dict = {'characteristics': characteristics, 'category': category.name}
-
-    return render_template('products/edit_product.html', d=data_dict, product=product_entity, form=form)
+    return characteristics
 
 
 @products.route('/edit/', methods=['POST'])
@@ -223,18 +252,13 @@ def validate_edit():
 
     if form.validate_on_submit():
 
-        data = request.values
+        form_data = request.values
 
-        product_id = int(data['product_id'])
+        product_id = int(form_data['product_id'])
         product_entity = ProductModel.query.get(product_id)
 
-        # get values of characteristics if there are some.
-        if extract_characteristics(data):
-            characteristics_fields = json.dumps(extract_characteristics(data))
-        else:
-            characteristics_fields = []
-
         date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        extra_data = {'last_edited': date_time}
 
         upload_path = GlobalSettingModelRepository.get('uploads_path')
 
@@ -242,26 +266,33 @@ def validate_edit():
         # check if extensions of all files are allowed
         images_valid = validate_images(images)
 
-        try:
-            # this also checks if any file was sent. If nothing is sent, there is one empty FileStorage object with
-            # unallowed extension. If no files were sent, old data will not be deleted
-            if images_valid or not no_images(images):
-                img_names = save_images(images, upload_path)
-            else:
-                # if some files are not allowed, return to a previous page
-                # return redirect(request.referrer)
-                img_names = []
+        # this also checks if any file was sent. If nothing is sent, there is one empty FileStorage object with
+        # unallowed extension. If no files were sent, old data will not be deleted
+        if images_valid or not no_images(images):
+            img_names = save_images(images, upload_path)
+        else:
+            # if some files are not allowed, return to a previous page
+            # return redirect(request.referrer)
+            img_names = []
 
-            extra_data = {'characteristics': characteristics_fields, 'last_edited': date_time, 'img_names': img_names}
+        # get values of characteristics if there are some.
+        new_characteristics = extract_characteristics(form_data)
 
-            update_entity(product_entity, data, extra_data)
+        if new_characteristics:
+            extra_data['characteristics'] = json.dumps(new_characteristics),
 
-            db.session.commit()
+        if img_names:
+            extra_data['img_names'] = json.dumps(img_names)
 
-        except Exception as e:
-            return {"message": str(e)}
+        data_to_update = {**form_data.to_dict(), **extra_data}
 
-        return redirect(url_for('admin_panel.index'))
+        update_entity(product_entity, data_to_update)
+
+        db.session.commit()
+
+        flash('Product successfully edited', category='success')
+
+    return redirect(url_for('products.display_all'))
 
 
 def save_images(images, upload_path):
@@ -295,37 +326,13 @@ def validate_images(files) -> bool:
     return all(allowed_list)
 
 
-def update_entity(entity, data,  extra_data):
-    """data parameter can be of type ImmutableDict, so I can't merge all data in one dict and so I created extra_date,
-    attrs_list[0] is used with 'data', whether attrs_list[1] with 'extra_data', attrs_list[2] is used for values
-    which need to be dumped first"""
-    # assign new values
-    attrs_list = [['name', 'description', 'price', 'pieces_left', 'category', 'box_dimensions', 'weight'],
-                  ['last_edited'], ['img_names', 'characteristics']]
-
-    for attr in attrs_list[0]:
-        setattr(entity, attr, data[attr])
-
-    for attr in attrs_list[1]:
-        setattr(entity, attr, extra_data[attr])
-
-    for attr in attrs_list[2]:
-        # If no data was sent, old data will not be deleted
-        if extra_data[attr]:
-            setattr(entity, attr, json.dumps(extra_data[attr]))
-
-    return entity
-
-
 def get_characteristics_with_names(characteristics):
     characteristics_list = characteristics
 
     # go through all ids and replace id with a characteristic's name. This may not be an optimal approach
     # (too much requests to the DB)
-    print(characteristics)
     for list_item in characteristics_list:
         charc_id = list_item[0]
-        print(list_item)
         entity = CharacteristicModel.query.get(charc_id)
         list_item[0] = entity.name
 
@@ -333,22 +340,8 @@ def get_characteristics_with_names(characteristics):
 
 
 def extract_characteristics(data) -> List:
-    # characteristics fields always have a numeric key
+    # characteristic fields always have a numeric key
     return [[key, value] for key, value in data.items() if key.isnumeric()]
-
-
-@products.route('/add-to-cart/<product_id>/', methods=['GET'])
-def add_to_cart(product_id):
-    if customer_logged():
-        strategy = AddToCustomer()
-    else:
-        strategy = AddToSession()
-
-    to_cart_adder = AddToCart(strategy)
-    to_cart_adder.add_product(product_id)
-
-    # redirect back to product's page
-    return redirect(request.referrer)
 
 
 @products.route('/delete/<int:product_id>/', methods=['GET'])
@@ -359,6 +352,8 @@ def delete(product_id):
     db.session.delete(product_entity)
     db.session.commit()
 
-    return redirect(url_for('admin_panel.index'))
+    flash('Product deleted successfully', category='success')
+
+    return redirect(url_for('products.display_all'))
 
 

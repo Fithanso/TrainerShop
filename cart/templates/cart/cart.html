@@ -6,6 +6,12 @@ Cart
 
 {% block content_title %}
 
+{% for category, msg in get_flashed_messages(with_categories=True) %}
+    <br>
+        <div class="flash {{category}}">{{ msg }}</div>
+    <br>
+{% endfor %}
+
 {% if product_rows %}
     <div class="page-title">
         <h1> Your cart: </h1>
@@ -42,7 +48,7 @@ Cart
                                 <i class="fas fa-plus"></i>
                             </a>
                         </div>
-                        <div class="col-2 cart-product-price">{{ product['row_price'] }}$</div>
+                        <div class="col-2 cart-product-price">{{ product['row_price'] }} {{ main_currency_sign }}</div>
 
                         <div class="col-1 cart-product-delete">
                             <a href="{{url_for('cart.delete_product', product_id=product['product'].id)}}">
@@ -54,7 +60,7 @@ Cart
                 {% endfor %}
             </div>
             <div class="col-4 text-center" id="cart-proceed-to-order">
-                <span id="order-price">Total without shipment: {{ total_price }}$</span>
+                <span id="order-price">Total without shipment: {{ total_price }} {{ main_currency_sign }}</span>
                 <br>
                 <a href="{{url_for('order.create')}}"><button type="button" id="cart-buy-btn" class="btn btn-warning">Buy</button></a>
             </div>

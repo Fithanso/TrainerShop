@@ -1,5 +1,9 @@
-from app import *
+from application import *
+
 from classes.abstract import Repository
+
+from constants import INT_MAX, INT_LEN
+
 import random
 
 

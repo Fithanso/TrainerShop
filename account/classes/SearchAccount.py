@@ -1,4 +1,3 @@
-from app import db
 from abc import ABC, abstractmethod
 from account.models.Customer import CustomerModel
 

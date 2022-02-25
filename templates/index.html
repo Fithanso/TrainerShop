@@ -7,8 +7,36 @@ Main page
 
 {% block content %}
 <div class="container main-page-container">
-    {% if easter_egg == 1 %}
-        <img src="{{ url_for('static', filename='system/puck_easter_egg.png') }}" id="main-page-easter-egg">
-    {% endif %}
+
+    <div class="row">
+
+        <div class="doge-img-container col-2">
+            <img src="{{ url_for('static', filename='system/main_doge_left.png') }}">
+        </div>
+
+        <div class="col-8">
+            {% if easter_egg == 1 %}
+                <img src="{{ url_for('static', filename='system/puck_easter_egg.png') }}" id="main-page-easter-egg">
+            {% endif %}
+            <div id="main-logo-container">
+               <img src="{{ url_for('static', filename='system/8bit_logo.png') }}">
+            </div>
+
+            <div id="index-center-container">
+                <h1>A useless website to buy useless shit</h1>
+            </div>
+
+            <div id="index-main-content">
+
+
+            </div>
+        </div>
+
+        <div class="doge-img-container col-2">
+            <img src="{{ url_for('static', filename='system/main_doge_right.png') }}">
+        </div>
+
+    </div>
+
 </div>
 {% endblock %}

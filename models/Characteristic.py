@@ -1,7 +1,11 @@
-from app import db, BIGINT_LEN, BIGINT_MAX
-import random
+from application import db
 
 from classes.abstract import Repository
+
+from constants import BIGINT_LEN, BIGINT_MAX
+
+from sqlalchemy.orm import relationship
+import random
 
 
 class CharacteristicModel(db.Model):
@@ -11,15 +15,16 @@ class CharacteristicModel(db.Model):
 
     id = db.Column(db.BigInteger, primary_key=True)
     name = db.Column(db.String())
-    category_id = db.Column(db.BigInteger)
+    category_id = db.Column(db.BigInteger(), db.ForeignKey('category.id'))
     type = db.Column(db.String())
     value = db.Column(db.String())
+    category = relationship("CategoryModel", back_populates="characteristics")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"<Characteristic {self.name}>"
+        return f"<Characteristic {self.__dict__}>"
 
 
 class CharacteristicModelRepository(Repository):
