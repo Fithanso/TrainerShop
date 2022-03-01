@@ -5,7 +5,15 @@ Admin Panel
 {% endblock %}
 
 {% block page_title %}
+
 <h1>Add product</h1>
+
+{% for category, msg in get_flashed_messages(with_categories=True) %}
+    <br><br>
+        <div class="flash {{category}}">{{ msg }}</div>
+    <br>
+{% endfor %}
+
 <br><br>
 <h5>Product's price can have a maximum of 10 digits, and maximum of 4 in the fractional part. </h5>
 

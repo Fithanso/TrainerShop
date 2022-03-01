@@ -17,6 +17,7 @@ class CategoryModel(db.Model):
     name = db.Column(db.String())
     short_name = db.Column(db.String())
     characteristics = relationship('CharacteristicModel', back_populates="category", cascade="all, delete")
+    products = relationship('ProductModel', back_populates="category_object")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -6,6 +6,8 @@ from global_settings.models.GlobalSetting import GlobalSettingModelRepository
 from constants import BIGINT_MAX, BIGINT_LEN
 from helpers import to_int_if_fractional_zero
 
+from sqlalchemy.orm import relationship
+
 import json
 import random
 import os
@@ -22,13 +24,14 @@ class ProductModel(db.Model):
     description = db.Column(db.Text())
     price = db.Column(db.Numeric(10, 4))
     pieces_left = db.Column(db.Integer())
-    category = db.Column(db.String())
+    category = db.Column(db.String(), db.ForeignKey('category.short_name'))
     characteristics = db.Column(db.Text())
     box_dimensions = db.Column(db.String())
-    weight = db.Column(db.SmallInteger())
+    box_weight = db.Column(db.SmallInteger())
     img_names = db.Column(db.Text())
     creation_date = db.Column(db.DateTime())
     last_edited = db.Column(db.DateTime())
+    category_object = relationship("CategoryModel", back_populates="products")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -64,23 +67,17 @@ class ProductModelRepository(Repository):
             return unique_id
         return 0
 
-    @staticmethod
-    def prepare_list(entities, chunks, max_chars):
-        """Method takes Product entities and makes them ready to be displayed. List of entities is splitted \
+    def prepare_list(self, entities, chunks, max_chars, upload_path):
+        """Method takes Product entities and makes them ready to be displayed. List of entities is split
         into chunks, additional information about each is loaded"""
 
         # split all products into chunks of certain length - n. It is needed to display them in rows of n elements
-        products_list = [entities[i:i + chunks] for i in range(0, len(entities), chunks)]
-
-        upload_path = GlobalSettingModelRepository.get('uploads_path')
+        products_list = self.split_entities_into_chunks(entities, chunks)
 
         # prepare icons for all loaded products (1 per product), crop descriptions to max chars possible
         for product in entities:
             filenames = json.loads(product.img_names)
-            description = product.description[0:max_chars]
-
-            if len(product.description) > max_chars:
-                description += '...'
+            description = self.create_product_description(product, max_chars)
 
             setattr(product, 'description', description)
 
@@ -89,6 +86,21 @@ class ProductModelRepository(Repository):
             if len(filenames) != 0:
                 # i add a system separator to make a path absolute,
                 # otherwise it'll search a 'static' folder inside products
-                setattr(product, 'icon_path', os.path.sep + os.path.join(upload_path, filenames[0]))
+                setattr(product, 'icon_path', self.get_upload_path_with_filename(upload_path, filenames[0]))
 
         return products_list
+
+    def split_entities_into_chunks(self, entities, chunks):
+        return [entities[i:i + chunks] for i in range(0, len(entities), chunks)]
+
+
+    def create_product_description(self, product, max_chars):
+        description = product.description[0:max_chars]
+
+        if len(product.description) > max_chars:
+            description += '...'
+
+        return description
+
+    def get_upload_path_with_filename(self, upload_path, filename):
+        return os.path.sep + os.path.join(upload_path, filename)

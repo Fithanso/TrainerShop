@@ -37,7 +37,7 @@
   </div>
 </nav>
 
-<div class="container">
+<div class="container-fluid">
     {% block breadcrumbs %}
 
     {% endblock %}
@@ -51,10 +51,12 @@
 
     {% endblock %}
 
+    <div class="row">
+        {% block content %}
 
-    {% block content %}
+        {% endblock %}
+    </div>
 
-    {% endblock %}
 </div>
 
 

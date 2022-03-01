@@ -15,7 +15,7 @@ from sqlalchemy import desc
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from uuid import uuid4
-from typing import List
+from typing import List, Dict
 import json
 
 
@@ -36,7 +36,7 @@ def display_all():
     if admin_logged():
         data_dict['add_to_cart_possible'] = False
 
-    main_currency_sign = GlobalSettingModelRepository.get('main_currency_sign')
+    main_currency_sign = get_global_settings()['main_currency_sign']
 
     data_dict['main_currency_sign'] = main_currency_sign
 
@@ -50,7 +50,7 @@ def search():
 
     data_dict = {}
 
-    main_currency_sign = GlobalSettingModelRepository.get('main_currency_sign')
+    main_currency_sign = get_global_settings()['main_currency_sign']
 
     data_dict['main_currency_sign'] = main_currency_sign
 
@@ -77,11 +77,12 @@ def search_by_field(field, search_query) -> List:
 
 
 def prepare_products_for_display(entities) -> List:
-    # get values of global settings
-    chunks = int(GlobalSettingModelRepository.get('products_in_row'))
-    max_chars = int(GlobalSettingModelRepository.get('max_chars_on_product_card'))
+    settings = get_global_settings()
 
-    products_list = ProductModelRepository.prepare_list(entities, chunks, max_chars)
+    product_repository = ProductModelRepository()
+    products_list = product_repository.prepare_list(
+        entities, settings['chunks'], settings['max_chars'], settings['upload_path']
+    )
     return products_list
 
 
@@ -89,7 +90,7 @@ def prepare_products_for_display(entities) -> List:
 @admin_only
 def create():
     form = CreateProductForm()
-    main_currency_sign = GlobalSettingModelRepository.get('main_currency_sign')
+    main_currency_sign = get_global_settings()['main_currency_sign']
 
     category_entities = CategoryModel.query.all()
     form.category.choices = [(c.short_name, c.name) for c in category_entities]
@@ -114,23 +115,24 @@ def validate_create():
 
         form_data = request.values
         # go through all data to find additional info - values of characteristics
-        characteristics_fields = json.dumps(extract_characteristics(form_data))
+        characteristics_fields = json.dumps(get_characteristics_dict_from_form(form_data))
 
         images = request.files.getlist("img_names")
+        img_names = []
 
         # check if extensions of all files are allowed
         images_valid = validate_images(images)
 
-        upload_path = GlobalSettingModelRepository.get('uploads_path')
-        img_necessary = GlobalSettingModelRepository.get('is_img_necessary_in_product')
+        settings = get_global_settings()
 
         try:
             # if at least one image was loaded
             if images_valid:
-                img_names = save_images(images, upload_path)
+                img_names = save_images(images, settings['upload_path'])
             else:
                 # if some files are not allowed, return to a previous page according to a global setting
-                if img_necessary == 'True':
+                if settings['img_necessary'] == 'True':
+                    flash('You should add at least one picture', category='warning')
                     return redirect(request.referrer)
 
             product_id = ProductModelRepository.create_id()
@@ -139,7 +141,7 @@ def validate_create():
             new_product = ProductModel(id=product_id, name=form_data['name'], description=form_data['description'],
                                        price=form_data['price'], pieces_left=form_data['pieces_left'],
                                        category=form_data['category'], characteristics=characteristics_fields,
-                                       box_dimensions=form_data['box_dimensions'], weight=form_data['weight'],
+                                       box_dimensions=form_data['box_dimensions'], box_weight=form_data['box_weight'],
                                        img_names=json.dumps(img_names), creation_date=date_time, last_edited=date_time)
             db.session.add(new_product)
             db.session.commit()
@@ -161,10 +163,9 @@ def view(product_id):
     if not product_entity:
         abort(404)
 
-    upload_path = GlobalSettingModelRepository.get('uploads_path')
-    main_currency_sign = GlobalSettingModelRepository.get('main_currency_sign')
+    settings = get_global_settings()
 
-    product_images = get_image_paths(product_entity.img_names, upload_path)
+    product_images = get_image_paths(product_entity.img_names, settings['upload_path'])
 
     products_characteristics = get_characteristics(product_entity)
 
@@ -179,14 +180,12 @@ def view(product_id):
         data_dict['add_to_cart_possible'] = False
 
     return render_template('products/view_product.html', d=data_dict, product=product_entity,
-                           main_currency_sign=main_currency_sign)
+                           main_currency_sign=settings['main_currency_sign'])
 
 
 def add_admin_info_into_dict(data_dict, product_entity):
-    data_dict['admin_info'] = {}
-    data_dict['admin_info']['product_id'] = product_entity.id
-    data_dict['admin_info']['creation_date'] = product_entity.creation_date
-    data_dict['admin_info']['last_edited'] = product_entity.last_edited
+    data_dict['admin_info'] = {'product_id': product_entity.id, 'creation_date': product_entity.creation_date,
+                               'last_edited': product_entity.last_edited}
 
     return data_dict
 
@@ -194,7 +193,7 @@ def add_admin_info_into_dict(data_dict, product_entity):
 def get_image_paths(img_names, upload_path):
     filenames = []
     for img_name in json.loads(img_names):
-        # i add a system separator to make a path absolute, otherwise it'll search a 'static' folder inside products
+        # I add a system separator to make a path absolute, otherwise it'll search a 'static' folder inside products
         filenames.append(os.path.sep + os.path.join(upload_path) + img_name)
 
     return filenames
@@ -217,7 +216,7 @@ def edit(product_id):
     form.product_id.data = product_id
 
     # set a placeholder for currency
-    main_currency_sign = GlobalSettingModelRepository.get('main_currency_sign')
+    main_currency_sign = get_global_settings()['main_currency_sign']
     form.price.render_kw = {"placeholder": main_currency_sign}
 
     # get names of a product's characteristics:
@@ -232,9 +231,9 @@ def edit(product_id):
 
 
 def get_characteristics(product_entity):
-    product_entity.characteristics = load_json_until_type(product_entity.characteristics)
+    product_entity.characteristics = json.loads(product_entity.characteristics)
 
-    characteristics = []
+    characteristics = {}
     if product_entity.characteristics:
         characteristics = get_characteristics_with_names(product_entity.characteristics)
 
@@ -260,7 +259,7 @@ def validate_edit():
         date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         extra_data = {'last_edited': date_time}
 
-        upload_path = GlobalSettingModelRepository.get('uploads_path')
+        upload_path = get_global_settings()['uploads_path']
 
         images = request.files.getlist("img_names")
         # check if extensions of all files are allowed
@@ -276,7 +275,7 @@ def validate_edit():
             img_names = []
 
         # get values of characteristics if there are some.
-        new_characteristics = extract_characteristics(form_data)
+        new_characteristics = get_characteristics_dict_from_form(form_data)
 
         if new_characteristics:
             extra_data['characteristics'] = json.dumps(new_characteristics),
@@ -326,22 +325,21 @@ def validate_images(files) -> bool:
     return all(allowed_list)
 
 
-def get_characteristics_with_names(characteristics):
-    characteristics_list = characteristics
+def get_characteristics_with_names(characteristics_dict):
 
-    # go through all ids and replace id with a characteristic's name. This may not be an optimal approach
-    # (too much requests to the DB)
-    for list_item in characteristics_list:
-        charc_id = list_item[0]
-        entity = CharacteristicModel.query.get(charc_id)
-        list_item[0] = entity.name
+    # This may not be an optimal approach (too many requests to the DB)
 
-    return characteristics_list
+    name_value_dict = {}
+    for charc_id, value in characteristics_dict.items():
+        characteristic_entity = CharacteristicModel.query.get(charc_id)
+        name_value_dict[characteristic_entity.name] = value
+
+    return name_value_dict
 
 
-def extract_characteristics(data) -> List:
+def get_characteristics_dict_from_form(data) -> Dict:
     # characteristic fields always have a numeric key
-    return [[key, value] for key, value in data.items() if key.isnumeric()]
+    return {key: value for key, value in data.items() if key.isnumeric()}
 
 
 @products.route('/delete/<int:product_id>/', methods=['GET'])
@@ -355,5 +353,16 @@ def delete(product_id):
     flash('Product deleted successfully', category='success')
 
     return redirect(url_for('products.display_all'))
+
+
+def get_global_settings():
+    result_dict = {
+        'chunks': int(GlobalSettingModelRepository.get('products_in_row')),
+        'max_chars': int(GlobalSettingModelRepository.get('max_chars_on_product_card')),
+        'main_currency_sign': GlobalSettingModelRepository.get('main_currency_sign'),
+        'upload_path': GlobalSettingModelRepository.get('uploads_path'),
+    }
+
+    return result_dict
 
 

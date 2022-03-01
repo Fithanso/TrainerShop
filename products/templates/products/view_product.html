@@ -77,15 +77,15 @@
     <h3 id="charcs_title">Characteristics</h3>
 
     <div>
-        {% for item in d['characteristics'] %}
-            <p>{{item[0] ~ ' : ' ~ item[1]}}</p>
+        {% for characteristic_name, value in d['characteristics'].items() %}
+            <p>{{characteristic_name ~ ' : ' ~ value}}</p>
 
         {% endfor %}
     </div>
 
     <div id="box-info-block">
         <h4 id="box-info">A box:</h4>
-        <p>{{ 'Dimensions: ' ~ product.box_dimensions ~ ' mm.  Weight: ' ~ product.weight ~ ' gr.'}}</p>
+        <p>{{ 'Dimensions: ' ~ product.box_dimensions ~ ' mm.  Weight: ' ~ product.box_weight ~ ' gr.'}}</p>
     </div>
 
 

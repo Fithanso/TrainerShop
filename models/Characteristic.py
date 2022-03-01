@@ -17,7 +17,6 @@ class CharacteristicModel(db.Model):
     name = db.Column(db.String())
     category_id = db.Column(db.BigInteger(), db.ForeignKey('category.id'))
     type = db.Column(db.String())
-    value = db.Column(db.String())
     category = relationship("CategoryModel", back_populates="characteristics")
 
     def __init__(self, **kwargs):

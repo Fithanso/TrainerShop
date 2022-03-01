@@ -4,9 +4,14 @@ from flask_wtf.csrf import CSRFError
 errors = Blueprint('errors', __name__, template_folder='templates')
 
 
+@errors.app_errorhandler(400)
+def handle_error_400(error):
+    return render_template('errors/error_400.html'), 400
+
+
 @errors.app_errorhandler(401)
-def handle_error_403(error):
-    return render_template('errors/error_401.html'), 403
+def handle_error_401(error):
+    return render_template('errors/error_401.html'), 401
 
 
 @errors.app_errorhandler(403)

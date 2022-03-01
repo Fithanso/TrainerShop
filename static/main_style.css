@@ -104,6 +104,55 @@ p {
     margin: 20px 0px;
 }
 
+#filters-block {
+    background-color: #EAD19A;
+    margin-top: 50px;
+    border-radius: 5px;
+
+}
+
+#filters-block #filters-title {
+    text-align: center;
+    width: 100%;
+    font-size: 2em;
+    font-weight: 500;
+}
+
+#filters-block .filter-area {
+    width: 100%;
+    margin-top: 20px;
+
+}
+
+#filters-block .filter-title {
+    font-size: 1.2em;
+    font-weight: 500;
+}
+
+#filters-block .filter-area ul {
+    list-style-type: none;
+}
+
+#filters-block .filter-option {
+    font-size: 1.1em;
+    margin-top: 5px;
+}
+
+#filters-block .filter-option input[type=checkbox] {
+  -ms-transform: scale(1.5); /* IE */
+  -moz-transform: scale(1.5); /* FF */
+  -webkit-transform: scale(1.5); /* Safari and Chrome */
+  -o-transform: scale(1.5); /* Opera */
+  transform: scale(1.5);
+  padding: 10px;
+
+}
+
+#filters-block #apply_filters {
+    border-radius: 5px;
+    padding: 10px 30px;
+}
+
 /* styles for product viewing page */
 
 #admin_info {

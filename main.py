@@ -20,9 +20,9 @@ application.register_blueprint(order, url_prefix='/order/')
 application.register_blueprint(shipment, url_prefix='/shipment/')
 application.register_blueprint(errors, url_prefix='/errors/')
 
-
 if __name__ == '__main__':
     application.run(debug=True)
+
 
 
 
