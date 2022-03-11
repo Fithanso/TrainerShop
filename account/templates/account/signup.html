@@ -14,7 +14,7 @@ Sign up!
 
 {% block content %}
 
-<form action="{{ url_for('account.signup') }}" method="POST">
+<form id="signup_form" action="{{ url_for('account.signup') }}" method="POST">
   <div class="col-md-6">
         {{ form.hidden_tag() }}
         {% for field in form if field.name not in ["csrf_token", "submit"]%}

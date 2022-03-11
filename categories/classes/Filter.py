@@ -49,7 +49,8 @@ class FilterCreator:
 
             if funcs.characteristic_exists_in_product(characteristic_entity.id, c_dict):
                 value = c_dict[str(characteristic_entity.id)]
-                filter_options.append(value)
+                if value.strip() != '':
+                    filter_options.append(value)
 
         return set(filter_options)
 

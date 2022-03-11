@@ -67,7 +67,7 @@ class ProductModelRepository(Repository):
             return unique_id
         return 0
 
-    def prepare_list(self, entities, chunks, max_chars, upload_path):
+    def prepare_list(self, entities, chunks, max_chars, uploads_path):
         """Method takes Product entities and makes them ready to be displayed. List of entities is split
         into chunks, additional information about each is loaded"""
 
@@ -86,7 +86,7 @@ class ProductModelRepository(Repository):
             if len(filenames) != 0:
                 # i add a system separator to make a path absolute,
                 # otherwise it'll search a 'static' folder inside products
-                setattr(product, 'icon_path', self.get_upload_path_with_filename(upload_path, filenames[0]))
+                setattr(product, 'icon_path', self.get_uploads_path_with_filename(uploads_path, filenames[0]))
 
         return products_list
 
@@ -102,5 +102,5 @@ class ProductModelRepository(Repository):
 
         return description
 
-    def get_upload_path_with_filename(self, upload_path, filename):
-        return os.path.sep + os.path.join(upload_path, filename)
+    def get_uploads_path_with_filename(self, uploads_path, filename):
+        return os.path.sep + os.path.join(uploads_path, filename)

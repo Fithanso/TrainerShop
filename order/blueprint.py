@@ -1,8 +1,9 @@
 from application import *
 from flask import Blueprint, render_template, request, redirect, url_for
 
-from order.classes.GetCartProducts import GetCartProducts, GetCartFromCustomer, GetCartFromSession
-from order.classes.SearchOrder import OrderSearcher, SearchById, SearchByName, SearchByPhoneNumber
+from order.classes.GetCartProducts import *
+from order.classes.SearchOrder import *
+from order.classes.CourierAssigner import CourierAssigner
 from order.models.Order import OrderModel, OrderModelRepository
 from order.forms import *
 
@@ -23,7 +24,7 @@ import json
 order = Blueprint('order', __name__, template_folder='templates')
 
 
-@order.route('/<string:order_id>', methods=['GET'])
+@order.route('/<string:order_id>/', methods=['GET'])
 def view(order_id):
 
     order_entity = OrderModel.query.get(order_id)
@@ -132,9 +133,9 @@ def validate_create():
         shipment_method_entity = ShipmentMethodModel.query.get(int(form_data['shipment_method']))
         total_price += shipment_method_entity.cost
 
-        boxes_content = json.dumps({'box1': 2, 'box2': 1})
+        boxes_content = json.dumps(get_box_contents())
 
-        courier_id = 0
+        courier_entity = get_courier()
 
         customer_id = form_data['customer_id'] if form_data['customer_id'] else 0
 
@@ -143,7 +144,7 @@ def validate_create():
         new_order = OrderModel(id=new_order_id, customer_id=customer_id,
                                purchased_products=form_data['purchased_products'], order_datetime=order_datetime,
                                received=False, shipment_method=int(form_data['shipment_method']),
-                               boxes_content=boxes_content, courier_id=courier_id,
+                               boxes_content=boxes_content, courier_id=courier_entity.id,
                                customer_registered=customer_registered, recipient_name=form_data['name'],
                                recipient_surname=form_data['surname'], recipient_patronymic=form_data['patronymic'],
                                recipient_phone_number=form_data['phone_number'], recipient_email=form_data['email'],
@@ -162,6 +163,17 @@ def validate_create():
         return redirect(url_for('index'))
 
     return redirect(url_for('order.success', order_id=new_order_id))
+
+
+def get_box_contents():
+    """A pathetic imitation of a big system of distribution of products by boxes\
+     that I have no interest to make anymore"""
+    return {'box1': 2, 'box2': 1}
+
+
+def get_courier():
+    assigner = CourierAssigner()
+    return assigner.get_available_courier()
 
 
 def decrease_pieces_left(product_ids):

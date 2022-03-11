@@ -20,12 +20,12 @@ Admin Panel
 <form action="{{ url_for('shipment.validate_edit') }}" method="POST">
   <div class="col-md-6">
       {{ form.hidden_tag() }}
-      {% for field in form if field.name not in ["csrf_token", "submit", "shipment_method_id"]%}
+      {% for field in form if field.name not in ["csrf_token", "submit", "shipment_method_id"] %}
 
         <div class="form-group">
             <p>{{ field.label() }}</p>
             <p>
-                {{ field(class="form-control) }}
+                {{ field(class="form-control") }}
                 {% for error in field.errors %}
                     {{ error }}
                 {% endfor %}
@@ -42,6 +42,6 @@ Admin Panel
 
 {% block footer %}
 <a href="{{ url_for('shipment.delete', shipment_method_id=shipment_method_id) }}" class="btn btn-danger">
-  Delete shipment method (impossible now)
+  Delete shipment method
 </a>
 {% endblock %}

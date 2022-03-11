@@ -17,7 +17,7 @@ class CreateProductForm(FlaskForm):
     price = DecimalField('Price', validators=[DataRequired()])
     pieces_left = IntegerField('Pieces left', validators=[DataRequired()])
     # I used my own class because I get "Not a valid choice" error every time
-    category = NonValidatingSelectField('Category')
+    category = NonValidatingSelectField('Category', render_kw={"id": "add_category_select"})
     box_dimensions = StringField('Box dimensions', validators=[DataRequired()],
                                  render_kw={"placeholder": "Length*width*height (mm.)"})
     box_weight = IntegerField('Box weight', validators=[DataRequired()], render_kw={"placeholder": "grams"})
@@ -31,7 +31,7 @@ class EditProductForm(FlaskForm):
     price = DecimalField('Price', validators=[DataRequired()])
     pieces_left = IntegerField('Pieces left', validators=[DataRequired()])
     # I used my own class because I get "Not a valid choice" error every time
-    category = NonValidatingSelectField('Category')
+    category = NonValidatingSelectField('Category', render_kw={"id": "edit_category_select"})
     box_dimensions = StringField('Box dimensions', validators=[DataRequired()], render_kw={"placeholder": "mm."})
     box_weight = IntegerField('Box weight', validators=[DataRequired()], render_kw={"placeholder": "grams"})
     img_names = MultipleFileField('Select images', validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Images only!')])

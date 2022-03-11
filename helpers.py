@@ -95,3 +95,4 @@ def to_int_if_fractional_zero(number):
         return int(number)
 
     return number
+

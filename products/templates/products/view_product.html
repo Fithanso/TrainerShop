@@ -70,21 +70,22 @@
     </div>
 
     <h2 id="desc_title">Description</h2>
-    <span>
+    <span id="product-description">
         {{ product.description }}
     </span>
 
     <h3 id="charcs_title">Characteristics</h3>
 
     <div>
-        {% for characteristic_name, value in d['characteristics'].items() %}
-            <p>{{characteristic_name ~ ' : ' ~ value}}</p>
+        {% for characteristic in d['characteristics'] %}
+
+            <p>{{characteristic["charc_name"] ~ ' : ' ~ characteristic["value"]}}</p>
 
         {% endfor %}
     </div>
 
     <div id="box-info-block">
-        <h4 id="box-info">A box:</h4>
+        <h4 id="box-info">The box:</h4>
         <p>{{ 'Dimensions: ' ~ product.box_dimensions ~ ' mm.  Weight: ' ~ product.box_weight ~ ' gr.'}}</p>
     </div>
 

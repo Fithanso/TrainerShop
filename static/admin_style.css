@@ -43,6 +43,24 @@ div.admin-button {
 
 }
 
+/* Product editing page */
+
+#edit-product-list-images {
+    width: 100%;
+    margin-bottom: 50px;
+}
+
+.product-edit-image-element {
+    width: 150px;
+    margin: 0px 10px;
+}
+
+.product-edit-image-element img {
+    max-width: 150px;
+    margin-bottom: 10px;
+    display: block;
+}
+
 /*Flask flash messages*/
 .flash {
     padding: 10px;

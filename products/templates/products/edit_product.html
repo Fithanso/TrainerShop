@@ -5,6 +5,13 @@ Admin Panel
 {% endblock %}
 
 {% block page_title %}
+
+{% for category, msg in get_flashed_messages(with_categories=True) %}
+    <br>
+    <div class="flash {{category}}">{{ msg }}</div>
+    <br><br>
+{% endfor %}
+
 <h1>Edit product</h1>
 {% endblock %}
 
@@ -39,8 +46,24 @@ Admin Panel
     <div class="form-group">
         {{ form.product_id(class="form-control") }}
     </div>
+    <br><br>
+
+    <div id="edit-product-list-images" class="row">
+        {% for image in d["images"] %}
+            <div class="product-edit-image-element">
+                <input type="hidden" value="{{ image['img_name'] }}">
+                <img src="{{ image['img_path'] }}">
+                <a href="{{ url_for('products.delete_product_image', product_id=product.id, image_name=image['img_name']) }}" class="btn btn-danger">Delete</a>
+            </div>
+        {% endfor %}
+    </div>
+
     <br>
     {{ form.submit(class="btn btn-primary") }}
+    <br><br>
+    {% for characteristic in d["characteristics"] %}
+        <div class='form-group additional-input'> <label class='control-label'>{{ characteristic["charc_name"] }}</label><input class='form-control' name='{{ characteristic["charc_id"] }}' type='text' placeholder='{{ characteristic["charc_type"] }}' value='{{ characteristic["value"] }}'></div>
+    {% endfor %}
 
 </form>
 <br>

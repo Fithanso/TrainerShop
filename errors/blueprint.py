@@ -1,6 +1,13 @@
 from flask import Blueprint, render_template, request
 from flask_wtf.csrf import CSRFError
 
+from application import application
+
+import logging
+
+logging.basicConfig(filename='record.log', level=logging.ERROR,
+                    format=f'%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
+
 errors = Blueprint('errors', __name__, template_folder='templates')
 
 

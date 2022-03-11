@@ -14,6 +14,17 @@ p {
 .error-message {
     color: #D83434;
 }
+
+#my-container {
+    width: 90%;
+}
+
+/* Login and signup */
+
+#signup_form input, #login_form input {
+    width: 30%;
+}
+
 /* Main page */
 
 .main-page-container {
@@ -41,6 +52,13 @@ p {
 
 .doge-img-container img {
     max-width: 100%;
+}
+
+/* Categories */
+
+#categories-list a {
+    width: 30%;
+    margin-top: 30px;
 }
 
 
@@ -153,7 +171,7 @@ p {
     padding: 10px 30px;
 }
 
-/* styles for product viewing page */
+/* Product viewing page */
 
 #admin_info {
     margin-top: 30px;
@@ -189,6 +207,10 @@ p {
     margin-top: 50px;
 }
 
+span#product-description {
+    width: 50%;
+}
+
 #charcs_title  {
     margin-top: 50px;
 }
@@ -209,7 +231,7 @@ p {
     max-height: 100%;
 }
 
-/* CART */
+/* Cart */
 
 #cart-content {
     margin-top: 50px;
@@ -254,7 +276,7 @@ p {
     height: auto;
 }
 
-/* PROFILE */
+/* Profile */
 
 #orders-history-block {
     margin-top: 50px;

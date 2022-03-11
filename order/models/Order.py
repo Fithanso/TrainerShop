@@ -89,10 +89,10 @@ class OrderModelRepository(Repository):
 
             shipment_method = ShipmentMethodModel.query.get(order_entity.shipment_method)
 
-            shipment = 'No info'
+            shipment = 'Information about shipment is not available'
             if shipment_method:
                 shipment = shipment_method.name + ': ' + str(shipment_method.cost) + ' ' + main_currency_sign
-            print(order_entity)
+
             order_dict = {'entity': order_entity, 'products': products_rows,
                           'total_price': str(order_entity.total_price) + ' ' + main_currency_sign,
                           'received': order_entity.received, 'shipment': shipment}

@@ -4,10 +4,11 @@ from products.models.Product import *
 from products.forms import *
 
 from categories.models.Category import CategoryModel
+from categories.blueprint import get_characteristics_with_values
 from models.Characteristic import CharacteristicModel
 from global_settings.models.GlobalSetting import *
 
-from helpers import admin_logged, customer_logged, load_json_until_type, update_entity
+from helpers import admin_logged, update_entity
 from decorators import admin_only
 from constants import ALLOWED_EXTENSIONS
 
@@ -18,13 +19,11 @@ from uuid import uuid4
 from typing import List, Dict
 import json
 
-
 products = Blueprint('products', __name__, template_folder='templates')
 
 
 @products.route('/')
 def display_all():
-
     product_entities = ProductModel.query.order_by(desc(ProductModel.creation_date)).all()
     products_list = prepare_products_for_display(product_entities)
 
@@ -45,7 +44,6 @@ def display_all():
 
 @products.route('/search/', methods=['GET'])
 def search():
-
     search_query = request.args.get('search_product')
 
     data_dict = {}
@@ -81,7 +79,7 @@ def prepare_products_for_display(entities) -> List:
 
     product_repository = ProductModelRepository()
     products_list = product_repository.prepare_list(
-        entities, settings['chunks'], settings['max_chars'], settings['upload_path']
+        entities, settings['chunks'], settings['max_chars'], settings['uploads_path']
     )
     return products_list
 
@@ -128,7 +126,7 @@ def validate_create():
         try:
             # if at least one image was loaded
             if images_valid:
-                img_names = save_images(images, settings['upload_path'])
+                img_names = save_images(images, settings['uploads_path'])
             else:
                 # if some files are not allowed, return to a previous page according to a global setting
                 if settings['img_necessary'] == 'True':
@@ -165,9 +163,9 @@ def view(product_id):
 
     settings = get_global_settings()
 
-    product_images = get_image_paths(product_entity.img_names, settings['upload_path'])
+    product_images = get_image_paths(json.loads(product_entity.img_names), settings['uploads_path'])
 
-    products_characteristics = get_characteristics(product_entity)
+    products_characteristics = get_characteristics_with_values(product_entity.category, product_entity.id)
 
     # find a normal name for a category using a short name
     category = CategoryModel.query.filter(CategoryModel.short_name == product_entity.category).first()
@@ -190,42 +188,38 @@ def add_admin_info_into_dict(data_dict, product_entity):
     return data_dict
 
 
-def get_image_paths(img_names, upload_path):
-    filenames = []
-    for img_name in json.loads(img_names):
-        # I add a system separator to make a path absolute, otherwise it'll search a 'static' folder inside products
-        filenames.append(os.path.sep + os.path.join(upload_path) + img_name)
-
-    return filenames
-
-
 @products.route('/edit/<int:product_id>/', methods=['GET'])
 @admin_only
 def edit(product_id):
-
     product_entity = ProductModel.query.get(product_id)
 
     form = EditProductForm(data=product_entity.__dict__)
+    global_settings = get_global_settings()
 
     # available choices are set before inserting data to this field
     # set available categories
     category_entities = CategoryModel.query.all()
     form.category.choices = [(c.short_name, c.name) for c in category_entities]
+    form.category.default = product_entity.category
 
     # insert product's ID into a hidden field
     form.product_id.data = product_id
 
     # set a placeholder for currency
-    main_currency_sign = get_global_settings()['main_currency_sign']
+
+    main_currency_sign = global_settings['main_currency_sign']
     form.price.render_kw = {"placeholder": main_currency_sign}
 
     # get names of a product's characteristics:
-    products_characteristics = get_characteristics(product_entity)
+    products_characteristics = get_characteristics_with_values(product_entity.category, product_entity.id)
+
+    product_images = get_images_data_for_product_edit(json.loads(product_entity.img_names),
+                                                      global_settings['uploads_path'])
 
     # find a normal name for a category using a short name
     category = CategoryModel.query.filter(CategoryModel.short_name == product_entity.category).first()
 
-    data_dict = {'characteristics': products_characteristics, 'category': category.name}
+    data_dict = {'characteristics': products_characteristics, 'category': category.name, 'images': product_images}
 
     return render_template('products/edit_product.html', d=data_dict, product=product_entity, form=form)
 
@@ -238,6 +232,25 @@ def get_characteristics(product_entity):
         characteristics = get_characteristics_with_names(product_entity.characteristics)
 
     return characteristics
+
+
+def get_images_data_for_product_edit(img_names, uploads_path):
+    result_list = []
+
+    for name in img_names:
+        img_path = get_image_paths([name], uploads_path)[0]
+        result_list.append({'img_name': name, 'img_path': img_path})
+
+    return result_list
+
+
+def get_image_paths(img_names, uploads_path):
+    filenames = []
+    for img_name in img_names:
+        # I add a system separator to make a path absolute, otherwise it'll search a 'static' folder inside products
+        filenames.append(os.path.sep + os.path.join(uploads_path) + img_name)
+
+    return filenames
 
 
 @products.route('/edit/', methods=['POST'])
@@ -259,7 +272,7 @@ def validate_edit():
         date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         extra_data = {'last_edited': date_time}
 
-        upload_path = get_global_settings()['uploads_path']
+        uploads_path = get_global_settings()['uploads_path']
 
         images = request.files.getlist("img_names")
         # check if extensions of all files are allowed
@@ -268,7 +281,7 @@ def validate_edit():
         # this also checks if any file was sent. If nothing is sent, there is one empty FileStorage object with
         # unallowed extension. If no files were sent, old data will not be deleted
         if images_valid or not no_images(images):
-            img_names = save_images(images, upload_path)
+            img_names = save_images(images, uploads_path)
         else:
             # if some files are not allowed, return to a previous page
             # return redirect(request.referrer)
@@ -291,15 +304,16 @@ def validate_edit():
 
         flash('Product successfully edited', category='success')
 
-    return redirect(url_for('products.display_all'))
+    return redirect(request.referrer)
 
 
-def save_images(images, upload_path):
+def save_images(images, uploads_path):
     img_names = []
     for file in images:
         # save all files. each file gets a random name
-        filename = str(uuid4()) + '.' + file.mimetype.split('/')[1]
-        file.save(os.path.join(upload_path, filename))
+        file_format = file.mimetype.split('/')[1]
+        filename = str(uuid4()) + '.' + file_format
+        file.save(os.path.join(uploads_path, filename))
         img_names.append(filename)
 
     return img_names
@@ -326,7 +340,6 @@ def validate_images(files) -> bool:
 
 
 def get_characteristics_with_names(characteristics_dict):
-
     # This may not be an optimal approach (too many requests to the DB)
 
     name_value_dict = {}
@@ -345,7 +358,6 @@ def get_characteristics_dict_from_form(data) -> Dict:
 @products.route('/delete/<int:product_id>/', methods=['GET'])
 @admin_only
 def delete(product_id):
-
     product_entity = ProductModel.query.get(product_id)
     db.session.delete(product_entity)
     db.session.commit()
@@ -355,14 +367,29 @@ def delete(product_id):
     return redirect(url_for('products.display_all'))
 
 
+@products.route('/delete_product_image/<int:product_id>/<string:image_name>', methods=['GET'])
+@admin_only
+def delete_product_image(product_id, image_name):
+    product_entity = ProductModel.query.get(product_id)
+    product_images = json.loads(product_entity.img_names)
+
+    if image_name in product_images:
+        product_images.remove(image_name)
+
+    product_entity.img_names = json.dumps(product_images)
+    db.session.commit()
+
+    flash('Image deleted successfully', category='success')
+
+    return redirect(request.referrer)
+
+
 def get_global_settings():
     result_dict = {
         'chunks': int(GlobalSettingModelRepository.get('products_in_row')),
         'max_chars': int(GlobalSettingModelRepository.get('max_chars_on_product_card')),
         'main_currency_sign': GlobalSettingModelRepository.get('main_currency_sign'),
-        'upload_path': GlobalSettingModelRepository.get('uploads_path'),
+        'uploads_path': GlobalSettingModelRepository.get('uploads_path'),
     }
 
     return result_dict
-
-

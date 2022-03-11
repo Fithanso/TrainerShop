@@ -82,6 +82,6 @@ def delete(shipment_method_id):
     db.session.delete(shipment_method_entity)
     db.session.commit()
 
-    flash('Shipment method edited successfully', category='success')
+    flash('Shipment method deleted successfully', category='success')
 
     return redirect(url_for('admin_panel.display_all_shipment_methods'))

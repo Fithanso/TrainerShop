@@ -5,10 +5,12 @@ from config import Configuration
 
 
 application = Flask(__name__)
+
 application.config.from_object(Configuration)
 application.secret_key = os.urandom(24)
 db = SQLAlchemy(application, session_options={"autoflush": False})
 migrate = Migrate(application, db)
+
 
 
 

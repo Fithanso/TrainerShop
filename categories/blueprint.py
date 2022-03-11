@@ -1,4 +1,3 @@
-import random
 
 from application import db
 from flask import Blueprint, render_template, request, redirect, url_for, abort, flash, get_flashed_messages
@@ -52,7 +51,7 @@ def view(category_short_name):
 
     product_repository = ProductModelRepository()
     products_list = product_repository.prepare_list(
-        product_entities, settings['chunks'], settings['max_chars'], settings['upload_path']
+        product_entities, settings['chunks'], settings['max_chars'], settings['uploads_path']
     )
 
     data_dict = {'products': products_list, 'main_currency_sign': settings['main_currency_sign'],
@@ -70,7 +69,7 @@ def get_global_settings():
         'chunks': int(GlobalSettingModelRepository.get('products_in_row')),
         'max_chars': int(GlobalSettingModelRepository.get('max_chars_on_product_card')),
         'main_currency_sign': GlobalSettingModelRepository.get('main_currency_sign'),
-        'upload_path': GlobalSettingModelRepository.get('uploads_path'),
+        'uploads_path': GlobalSettingModelRepository.get('uploads_path'),
     }
 
     return result_dict
@@ -91,8 +90,8 @@ def remove_word_from_dict_keys(input_dict):
     result_dict = {}
 
     for key, value in input_dict.items():
-        splitted_key = key.split("_")
-        new_key = splitted_key[1] + "_" + splitted_key[2]
+        prefix, filter_id, filter_number = key.split("_")
+        new_key = filter_id + "_" + filter_number
         result_dict[new_key] = value
 
     return result_dict
@@ -128,7 +127,7 @@ def edit(category_id):
     category_entity = CategoryModel.query.get(category_id)
     existing_charcs_entities = category_entity.characteristics
 
-    characteristics_name_type_pairs= make_name_type_pairs(existing_charcs_entities)
+    characteristics_name_type_pairs = make_name_type_pairs(existing_charcs_entities)
 
     form.category_id.data = category_id
     form.characteristics.data = characteristics_name_type_pairs
@@ -143,7 +142,7 @@ def make_name_type_pairs(charcs) -> str:
     result = ''
     # "convert" objects into text to insert in textarea
     for item in charcs:
-        unit = item.name + ':' + item.type + ', '
+        unit = item.name.strip() + ':' + item.type + ', '
         result += unit
     return result
 
@@ -207,14 +206,14 @@ def delete_characteristics(entities):
 def arrange_charc_string_to_dict(characteristics_string):
     # cut unnecessary comma
     if characteristics_string[-1] == ',':
-        characteristics_string = characteristics_string[0: -1]
+        characteristics_string = characteristics_string[: -1]
 
     name_type_pairs = {}
     # make a pair of characteristic's name and type
     for pair in characteristics_string.split(','):
         c_name, c_type = pair.split(':')
         if '' not in [c_name, c_type] and c_type in ['boolean', 'integer', 'string']:
-            name_type_pairs[c_name] = c_type
+            name_type_pairs[c_name.strip()] = c_type
 
     return name_type_pairs
 
@@ -226,6 +225,7 @@ def create_new_charcs_if_needed(name_type_pairs, form_data):
             CharacteristicModel.category_id == form_data['category_id'],
             CharacteristicModel.name == c_name,
             CharacteristicModel.type == c_type).all()
+
         if not existing_entity:
             characteristic_id = CharacteristicModelRepository.create_id()
             new_characteristic = CharacteristicModel(id=characteristic_id, name=c_name,
@@ -234,26 +234,53 @@ def create_new_charcs_if_needed(name_type_pairs, form_data):
             db.session.commit()
 
 
+@categories.route('/get_characteristics_values/<string:short_name>/<int:product_id>/', methods=['POST'])
+@admin_only
+def get_characteristics_with_values_for_js(short_name, product_id):
+    """method is used only by JS"""
+
+    return json.dumps(get_characteristics_with_values(short_name, product_id))
+
+
+def get_characteristics_with_values(short_name, product_id):
+    """method collects all possible characteristics of a product and values if there are some."""
+    category_entity = CategoryModel.query.filter(CategoryModel.short_name == short_name).first()
+    product_entity = ProductModel.query.get(product_id)
+    values = json.loads(product_entity.characteristics)
+
+    result_list = []
+
+    for item in category_entity.characteristics:
+        item.id = str(item.id)
+        charc_value = values[item.id] if item.id in values else ''
+        result_list.append({"charc_name": item.name, "charc_id": item.id,
+                            "charc_type": item.type, "value": charc_value})
+
+    return result_list
+
+
 @categories.route('/get_characteristics/<string:short_name>/', methods=['POST'])
 @admin_only
-def get_characteristics(short_name):
-    """method collects all characteristics of one category"""
+def get_characteristics_without_values_for_js(short_name):
+    """method is used only by JS"""
+
+    return json.dumps(get_characteristics_without_values(short_name))
+
+
+def get_characteristics_without_values(short_name):
+
+    """method collects all possible characteristics of a product"""
 
     category_entity = CategoryModel.query.filter(CategoryModel.short_name == short_name).first()
-    result_list = assemble_objects_to_list(category_entity.characteristics)
 
-    return json.dumps(result_list)
+    result_list = []
 
+    for item in category_entity.characteristics:
+        item.id = str(item.id)
+        result_list.append({"charc_name": item.name, "charc_id": item.id,
+                            "charc_type": item.type})
 
-def assemble_objects_to_list(charcs) -> list:
-    """
-    Method takes list of objects and transforms them into list of lists like this: (characteristic name,id,type)
-    """
-
-    result = []
-    for item in charcs:
-        result.append([item.name, str(item.id), item.type])
-    return result
+    return result_list
 
 
 @categories.route('/delete/<int:category_id>/', methods=['GET'])
