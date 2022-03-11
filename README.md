@@ -5,5 +5,5 @@
 without being logged in, customer_id for the order is set to 0. A constraint should be followed.
 3. In clean_backup you can find a DB backup containing only some global settings and admin's account.
 Use mail@gmail.com and 'admin' as login and password.
-4. Parts of system that were planned: couriers subsystem, subsystem of distribution of goods by delivery boxes. 
+4. Parts of system that were planned: couriers subsystem, subsystem of distribution of goods by delivery boxes, comments and products scoring subsystems. 
 Just have no more interest in implementing them. Decided to move on to Django. 
